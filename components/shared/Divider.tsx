@@ -3,6 +3,7 @@
 import { useRef } from "react"
 import { motion, useInView } from "framer-motion"
 import Image from "next/image"
+import { cn } from "@/lib/utils"
 
 interface DividerProps {
   iconUrl: string
@@ -30,7 +31,7 @@ export default function Divider({ iconUrl, width, height, mt, mb, type }: Divide
   return (
     <motion.div
       ref={dividerRef}
-      className={`mt-${mt} mb-${mb} ${type === "default" ? 'w-full h-0.5 bg-black' : 'flex justify-center'}`}
+      className={cn(`mt-${mt} mb-${mb} ${type === "default" ? 'w-full h-0.5 bg-black' : 'flex justify-center'}`)}
       initial="hidden"
       animate={isInView ? "visible" : "hidden"}
       transition={{ duration: 0.5 }}
