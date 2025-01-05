@@ -19,7 +19,9 @@ export default async function Home() {
   return (
     <>
       <BannerHero/>
-      <Divider iconUrl="/assets/arrow-down.svg" width={64} height={64} mt={32} mb={12} type="icon-only" />  
+      <div className="mt-32">
+        <Divider iconUrl="/assets/arrow-down.svg" width={64} height={64} mt={32} mb={12} type="icon-only" />  
+      </div>
       <Categories/>
       <Divider iconUrl="" width={0} height={0} mt={0} mb={0} type="default"/>
       <AboutUs/>
