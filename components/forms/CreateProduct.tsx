@@ -157,6 +157,7 @@ const CreateProduct = () => {
   const onSubmit = async (values: z.infer<typeof ProductValidation>) => {
     //console.log("Submitting");
     
+    console.log(price, discountPrice)
     await createProduct({
       id: values.id,
       name: values.name,
