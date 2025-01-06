@@ -157,7 +157,7 @@ const CreateProduct = () => {
   const onSubmit = async (values: z.infer<typeof ProductValidation>) => {
     //console.log("Submitting");
     
-    console.log(parseFloat(price), parseFloat(discountPrice)) 
+    console.log(price, parseFloat(price), discountPrice, parseFloat(discountPrice)) 
     await createProduct({
       id: values.id,
       name: values.name,
