@@ -172,7 +172,6 @@ const CreateProduct = () => {
   }
 
   const onSubmit = async (values: z.infer<typeof ProductValidation>) => {
-    //console.log("Submitting");
     
     console.log(values.price.slice(1), values.priceToShow.slice(1))
     await createProduct({
@@ -518,29 +517,6 @@ const CreateProduct = () => {
                 )}
               />
           </div>
-          {/* <div className="w-full h-fit pl-4 pr-5 py-4 border rounded-2xl">
-            <h4 className="w-full text-base-semibold text-[15px] mb-4">Стан</h4>
-              <FormField
-                control={form.control}
-                name="isAvailable"
-                render={({ field }) => (
-                  <FormItem className="w-full flex flex-col">
-                    <FormLabel className='text-small-medium text-[14px] text-dark-1 mt-[6px]'>
-                      Доступний
-                    </FormLabel>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        aria-readonly
-                        className="text-small-regular text-gray-700 text-[13px] bg-neutral-100 ml-2 focus-visible:ring-black focus-visible:bg-black focus-visible:ring-[1px] data-[state=checked]:bg-black"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-          </div> */}
         </div>
         
         <div className="w-1/2 h-fit flex flex-col gap-5 max-[900px]:w-full">
