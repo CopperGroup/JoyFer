@@ -25,15 +25,13 @@ import { useUploadThing } from "@/lib/uploadthing";
 import { useDropzone } from "@uploadthing/react";
 import { generateClientDropzoneAccept } from "uploadthing/client";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
+import { removeAllButOne, removeExtraLeadingCharacters } from "@/lib/utils";
 
 type ProductFormValues = z.infer<typeof ProductValidation>;
 type DiscountType = "percentage" | "digits";
 type UploadingState = "initial" | "uploading" | "success" | "error";
 
 const CreateProduct = () => {
-  const [ price, setPrice ] = useState<string>("");
-  const [ rawPrice, setRawPrice ] = useState<string>("");
-  const [ priceFocused, setPriceFocused ] = useState(false);
   const [ discountPrice, setDiscountPrice ] = useState<string>("");
   const [ discountPercentage, setDiscountPercentage ] = useState<number>(0);
   const [ focused, setFocused ] = useState(false);
@@ -144,6 +142,25 @@ const CreateProduct = () => {
     
     const form = useForm<z.infer<typeof ProductValidation>>({
       resolver: zodResolver(ProductValidation),
+      defaultValues: {
+        id: "",
+        name: "",
+        price: "$0",
+        priceToShow: "$0",
+        description: "",
+        url: "",
+        quantity: "",
+        category: "",
+        vendor: "",
+        isAvailable: true,
+        Model: "",
+        Width: "",
+        Height: "",
+        Depth: "",
+        Type: "",
+        Color: "",
+        customParams: []
+      }
     });
 
   const [isChecked, setIsChecked] = useState(form.getValues("isAvailable") ?? true); 
@@ -157,15 +174,15 @@ const CreateProduct = () => {
   const onSubmit = async (values: z.infer<typeof ProductValidation>) => {
     //console.log("Submitting");
     
-    console.log(price, parseFloat(price), discountPrice, parseFloat(discountPrice)) 
+    console.log(values.price.slice(1), values.priceToShow.slice(1))
     await createProduct({
       id: values.id,
       name: values.name,
       quantity: parseFloat(values.quantity),
       images: images,
       url: values.url ? values.url : "",
-      price: parseFloat(price),
-      priceToShow: parseFloat(discountPrice),
+      price: parseFloat(values.price.slice(1)),
+      priceToShow: parseFloat(values.priceToShow.slice(1)),
       vendor: values.vendor,
       category: values.category,
       description: values.description,
@@ -239,52 +256,14 @@ const CreateProduct = () => {
     setId();
   }, [])
 
-  useEffect(() => {
-    const parsedPrice = parseFloat(price);
-    const parsedDiscountPrice = parseFloat(discountPrice);
-
-    if (!isNaN(parsedPrice) && !isNaN(parsedDiscountPrice) && parsedPrice !== 0) {
-      const percentage = ((parsedPrice - parsedDiscountPrice) / parsedPrice) * 100;
-      setDiscountPercentage(percentage);
-    }
-  }, [price, discountPrice]);
-
-  useEffect(() => {
-      if(discountPercentage) {
-        //console.log(discountPercentage);
-        //console.log(discountPrice);
-    
-        const discountValue = parseFloat(price) - ((discountPercentage / 100) * parseFloat(price));
-    
-        setDiscountPrice(`${discountValue}`);
-
-        //console.log("Result " + discountValue);
-      } else {
-        setDiscountPercentage(0);
-
-        //console.log(discountPercentage);
-        //console.log(discountPrice);
-    
-        const discountValue = parseFloat(price) - ((discountPercentage / 100) * parseFloat(price));
-    
-        setDiscountPrice(`${discountValue}`);
-
-        //console.log("Result " + discountPrice);
-      }
-  }, [discountPercentage])
-
   const handleNoDiscount = (value: boolean) => {
     if(value) {
-    setDiscountPrice(price);
-    setDiscountPercentage(0);
-    setDiscountType("percentage");
+      form.setValue("priceToShow", form.getValues("price"))
+      setDiscountPercentage(0);
+      setDiscountPrice(form.getValues("price"))
+      setDiscountType("percentage");
     }
   }
-
-  useEffect(() => {
-    //console.log("Price", price);
-    //console.log("Form price", form.getValues("price"));
-  }, [price])
 
   return (
     <Form {...form}>
@@ -580,27 +559,19 @@ const CreateProduct = () => {
                       <Input
                           type='text'
                           className="text-small-regular text-gray-700 text-[13px] bg-neutral-100 ml-1 focus-visible:ring-black focus-visible:ring-[1px]"
-                          value={priceFocused ? rawPrice : `₴ ${rawPrice}`} // Use the raw input value for the input field
+                          value={field.value}
                           onChange={(e) => {
 
-                            const rawValue = e.target.value.replace(/[^\d.]/g, "");
-
-                            form.setValue("price", "1");
-                            form.setValue("priceToShow", "1")
-                            setPriceFocused(true);
-                            setRawPrice(rawValue);
-                          }}
-                          onBlur={() => {
-                            if (!isNaN(parseFloat(rawPrice)) && rawPrice !== "") {
-                              const formattedPrice = `${parseFloat(rawPrice).toFixed(2)}`;
-                              setPrice(formattedPrice);
-                              setRawPrice(formattedPrice);
-                            } else {
-                              setRawPrice(""); 
+                            const rawValue = removeExtraLeadingCharacters(removeAllButOne(e.target.value.replace(/[^\d.]/g, ""), "."), "0");
+                            let discount = (parseFloat(rawValue) - parseFloat(rawValue) * (discountPercentage / 100))
+                            console.log(rawValue, discount)
+                            if(isNaN(discount)) {
+                              discount = 0
                             }
-                            setPriceFocused(false);
+                            form.setValue("price", `₴${rawValue}`);
+                            form.setValue("priceToShow", `₴${discount.toFixed(2)}`)
+                            setDiscountPrice(discount.toFixed(2))
                           }}
-                          onFocus={() => {setPriceFocused(true)}}
                         />
                     </FormControl>
                     <FormMessage />
@@ -621,11 +592,37 @@ const CreateProduct = () => {
                           className="text-small-regular text-gray-700 text-[13px] bg-neutral-100 ml-1 mt-2 focus-visible:ring-black focus-visible:ring-[1px] max-[370px]:ml-0"
                           value={focused ? `${discountPercentage.toFixed(0)}` : `${discountPercentage.toFixed(0)}%`}
                           onChange={(e) => {
-                            const value = e.target.value.replace('%', '');
-                            setDiscountPercentage(value !== "" ? parseFloat(value) : 0);
+                            const value = e.target.value.replace('%', '').trim();
+                            let numericValue = parseFloat(value);
+                            
+                            if (isNaN(numericValue)) {
+                              numericValue = 0;
+                            } else {
+                              numericValue = Math.max(0, Math.min(100, numericValue));
+                            }
+
+                            if (!isNaN(numericValue)) {
+                              const p = parseFloat(form.getValues("price").slice(1));
+                            
+                              if (!isNaN(p)) {
+                                const discountValue = p - (numericValue / 100) * p;
+                                console.log("D", discountValue);
+                            
+                                form.setValue("priceToShow", `₴${discountValue.toFixed(2)}`);
+                                setDiscountPrice(discountValue.toFixed(2))
+                              } else {
+                                console.error("Invalid price format.");
+                              }
+                            } else {
+
+                              console.error("Invalid discount percentage.");
+                            }
+                            
+                            setDiscountPercentage(value !== "" ? numericValue : 0);
                           }}
                           onBlur={() => setFocused(false)}
                           onFocus={() => setFocused(true)}
+                          disabled={form.getValues("price").slice(1).length === 0}
                         />
                       </div>
                     ) : (
@@ -640,11 +637,41 @@ const CreateProduct = () => {
                               <Input
                                 type='text'
                                 className="text-small-regular text-gray-700 text-[13px] bg-neutral-100 ml-1 focus-visible:ring-black focus-visible:ring-[1px]"
-                                defaultValue={(parseFloat(price) - (parseFloat(price) * (discountPercentage / 100))).toFixed(2)}
+                                value={field.value}
                                 onChange={(e) => {
-                                  setDiscountPrice(e.target.value); 
-                                  //console.log("Discount price after: " + discountPrice)
+                                  let rawInput = e.target.value.replace(/[^\d.]/g, "");
+
+                                  if (rawInput.split(".").length > 2) {
+                                    rawInput = rawInput.slice(0, rawInput.lastIndexOf("."));
+                                  }
+                                
+                                  let rawValue = parseFloat(rawInput);
+                                
+                                  let maxPrice = parseFloat(form.getValues("price").slice(1));
+
+                                  if (!isNaN(rawValue)) {
+                                    if (rawValue > maxPrice) {
+                                      rawValue = maxPrice;
+                                      rawInput = rawValue.toString()
+                                    }
+                                  } else if (rawInput === ".") {
+                                    rawInput = "0.";
+                                    rawValue = 0;
+                                  } else {
+                                    rawValue = 0;
+                                  }
+                                  
+                                  form.setValue("priceToShow", `₴${rawInput}`);
+                                  setDiscountPrice(rawValue.toFixed(2));
+                                  
+                                  let percentage = 0;
+                                  if (rawValue !== 0) {
+                                    percentage = ((1 - rawValue / maxPrice) * 100);
+                                  }
+
+                                  setDiscountPercentage(percentage); 
                                 }}
+                                disabled={form.getValues("price").slice(1).length === 0}
                               />
                             </FormControl>
                             <FormMessage />
@@ -667,7 +694,7 @@ const CreateProduct = () => {
 
               <div className={`w-full h-fit flex gap-1 ${noDiscount ? "justify-end" : "justify-between"} items-center mt-2 max-[370px]:px-1`}>
                 {!noDiscount && (discountType === "percentage" ? (
-                  <p className="text-subtle-medium leading-none ml-1"><span className="max-[370px]:hidden">Ціна зі знижкою</span><span className="min-[371px]:hidden">=</span> ₴{(parseFloat(price) - (parseFloat(price) * (discountPercentage / 100))).toFixed(2)}</p>
+                  <p className="text-subtle-medium leading-none ml-1"><span className="max-[370px]:hidden">Ціна зі знижкою</span><span className="min-[371px]:hidden">=</span> {discountPrice}</p>
                 ): (
                   <p className="text-subtle-medium leading-none ml-1"><span className="max-[370px]:hidden">Відсоток знижки</span><span className="min-[371px]:hidden">=</span> {discountPercentage.toFixed(0)}%</p>
                 ))}
@@ -676,10 +703,6 @@ const CreateProduct = () => {
                   <label htmlFor="noDiscount" className="text-subtle-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Без знижки</label>
                 </div>
               </div>
-              {/* <div className="w-full h-fit flex gap-1 justify-end items-center mt-2 min-[371px]:hidden">
-                <CheckboxSmall id="noDiscount" className="size-3 rounded-[4px] border-neutral-600 data-[state=checked]:bg-black data-[state=checked]:text-white" onCheckedChange={(value: boolean) => {handleNoDiscount(value), setNoDiscount(value)}}/>
-                <label htmlFor="noDiscount" className="text-subtle-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Без знижки</label>
-              </div> */}
             </div>
           </div>
           <div className="w-full h-fit pl-4 pr-5 py-4 border rounded-2xl">
@@ -828,13 +851,13 @@ const CreateProduct = () => {
                 />
               ))}
               {fields.map((field, index) => (
-                        <FormItem key={field.id} className='w-full'>
+                        <FormItem key={field.id} className="w-full bg-white">
                           <div className="relative w-full flex justify-end">
-                            <FormLabel className='w-full text-base-semibold text-dark-1 max-lg:w-full'>
+                            <FormLabel className='w-full text-base-semibold text-dark-1 bg-white max-lg:w-full'>
                                 <Input
                                     placeholder="Назва параметра"
                                     {...form.register(`customParams.${index}.name` as const)}
-                                    className='w-full appearance-none text-small-medium text-[14px] text-dark-1 bg-transparent rounded-none border-0 border-b ml-1 px-0 focus-visible:ring-0 focus-visible:border-black'
+                                    className='w-full appearance-none text-small-medium text-[14px] text-dark-1 bg-transparent rounded-none border-0 border-b ml-1 px-0 transition-all focus-visible:ring-0 focus-visible:border-black'
                                     // onChange={(e) => {field.name = e.target.value; console.log(field)}}
                                 />
                             </FormLabel>

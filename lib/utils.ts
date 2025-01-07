@@ -235,3 +235,42 @@ export function getCounts(filtredProducts: ProductType[]) {
       colorsCount: countByKey(filtredProducts, product => product.params[5]?.value),
   };
 }
+
+export function removeAllButOne(inputString: string, charToKeep: string) {
+  let firstOccurrence = false;
+  return inputString
+    .split('')
+    .filter((char) => {
+      if (char === charToKeep && !firstOccurrence) {
+        firstOccurrence = true;
+        return true;
+      }
+      return char !== charToKeep;
+    })
+    .join('');
+}
+
+export function removeExtraLeadingCharacters(input: string, char: string): string {
+  // Validate input
+  if (typeof input !== "string" || typeof char !== "string") {
+    throw new Error("Invalid input: both arguments must be strings");
+  }
+
+  if (char.length !== 1) {
+    throw new Error("Invalid input: 'char' must be a single character");
+  }
+
+  // If the string does not start with the specified character, return it as is
+  if (!input.startsWith(char)) {
+    return input;
+  }
+
+  // Find the first character that is different from the specified character
+  let firstDifferentIndex = 0;
+  while (input[firstDifferentIndex] === char) {
+    firstDifferentIndex++;
+  }
+
+  // Ensure only one leading occurrence of the character remains
+  return char + input.slice(firstDifferentIndex);
+}
