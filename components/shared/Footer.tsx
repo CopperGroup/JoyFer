@@ -52,16 +52,16 @@ const Footer = () => {
           <div className="w-full">
             <h3 className="text-lg font-semibold mb-4">Каталоги</h3>
             <ul className="space-y-2">
-              <li><Link href='/catalog?category=Меблі_для_ванної_кімнати' className="hover:text-blue-400 transition-colors">Меблі для ванної</Link></li>
-              <li><Link href='/catalog?category=Житлові_меблі' className="hover:text-blue-400 transition-colors">Житлові меблі</Link></li>
-              <li><Link href='/catalog?category=Дитячі_меблі' className="hover:text-blue-400 transition-colors">Дитячі меблі</Link></li>
+              <li><Link href='/catalog' className="hover:text-blue-400 transition-colors">Смаколики</Link></li>
+              <li><Link href='/catalog' className="hover:text-blue-400 transition-colors">Смаколики</Link></li>
+              <li><Link href='/catalog' className="hover:text-blue-400 transition-colors">Смаколики</Link></li>
             </ul>
           </div>
 
           <div className="w-full">
             <h3 className="text-lg font-semibold mb-4">Контакти</h3>
-            <p className="mb-2">Телефон: (066) 017-81-70, (068) 842-81-98</p>
-            <p className="mb-4">Email: santehvan@gmail.com</p>
+            <p className="mb-2">Phone:</p>
+            <p className="mb-4">Email: </p>
             <h4 className="text-lg font-semibold mb-2">Ми в соцмережах</h4>
             <div className="flex space-x-4">
               <a href="#" className="text-white hover:text-blue-400 transition-colors">
@@ -83,10 +83,10 @@ const Footer = () => {
         >
           <div className="flex flex-col lg:flex-row justify-between items-center">
             <p className="text-sm text-gray-400 mb-4 lg:mb-0 text-center lg:text-left">
-              © {currentYear} Меблі для ванної інтернет магазин <span className="font-semibold">SANTEHVAN</span>. Всі права захищені.
+              © {currentYear}<span className="font-semibold">FO SCANDINAVIA</span>. Всі права захищені.
             </p>
             <div className="flex flex-col items-center lg:items-end space-y-2 lg:space-y-0">
-              <span className="text-sm text-gray-400 text-center lg:text-right">Представник українських виробників меблів для ванної:</span>
+              <span className="text-sm text-gray-400 text-center lg:text-right">Солодко</span>
               <div className="flex space-x-2 mt-2 lg:mt-1">
                 <Image className="h-6 w-auto" width={88} height={18} src='/assets/botticelli.png' alt='Botticelli logo' />
                 <Image className="h-6 w-auto" width={55} height={18} src='/assets/juventa.png' alt='Juventa logo' />

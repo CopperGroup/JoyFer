@@ -6,9 +6,9 @@ import Link from "next/link"
 import Image from "next/image"
 
 const categories = [
-  { name: "Меблі для ванної", image: "/tymba.png", href: "/catalog?category=Меблі_для_ванної_кімнати" },
-  { name: "Житлові меблі", image: "/komod.png", href: "/catalog?category=Житлові_меблі" },
-  { name: "Дитячі меблі", image: "/krovatka.png", href: "/catalog?category=Дитячі_меблі" },
+  { name: "Houses", image: "/assets/1.jpeg", href: "/catalog" },
+  { name: "Chocolates", image: "/assets/2.jpeg", href: "/catalog" },
+  { name: "Sweets", image: "/assets/loginbackground.jpg", href: "/catalog" },
 ]
 
 export default function Categories() {
@@ -45,7 +45,7 @@ export default function Categories() {
             animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
-            Знайдіть ідеальні рішення для вашого дому серед наших категорій
+            Get something for your taste
           </motion.p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {categories.map((category, index) => (

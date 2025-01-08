@@ -9,9 +9,9 @@ import Link from "next/link"
 import LinkButton from "../interface/LinkButton"
 
 const features = [
-  { title: "Якість", description: "Меблі вищого ґатунку для вашого дому" },
-  { title: "Дизайн", description: "Сучасні та класичні стилі для будь-якого інтер'єру" },
-  { title: "Сервіс", description: "Професійна консультація та швидка доставка" },
+  { title: "Якість", description: "Ми круті" },
+  { title: "Смак", description: "Ми круті" },
+  { title: "Сервіс", description: "Ми круті" },
 ]
 
 export default function AboutUs() {
@@ -50,7 +50,7 @@ export default function AboutUs() {
                 animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
               >
-                Про Santehvan
+                Про FO Scandinavia
               </motion.h2>
               <motion.p 
                 className="text-gray-600 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed"
@@ -58,7 +58,7 @@ export default function AboutUs() {
                 animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
                 transition={{ duration: 0.5, delay: 0.3 }}
               >
-                Ми створюємо меблі, які перетворюють ваш дім на затишний простір для життя та відпочинку. Наша місія - поєднати функціональність, естетику та комфорт у кожному виробі.
+                Ми круті
               </motion.p>
               <div className="space-y-4">
                 {features.map((feature, index) => (
