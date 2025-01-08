@@ -56,6 +56,7 @@ export default function ProductPage({ productJson, colorsJson }: { productJson: 
             <div className="flex flex-wrap gap-2 sm:gap-4">
               {colors.map((color: { images: string[], params: {name: string, value: string}[] }, index: number) => (
                 <div
+                 key={index}
                 >
                     <TransitionLink href={color.params[0].value} className="w-full h-fit flex justify-center items-center">
                         <Image
