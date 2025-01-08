@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect, useCallback } from 'react'
 import { EmblaOptionsType } from 'embla-carousel'
 import useEmblaCarousel from 'embla-carousel-react'
@@ -46,7 +48,16 @@ const EmblaCarousel: React.FC<PropType> = (props) => {
         <div className="embla__container rounded-md ">
           {slides.map((index) => (
             <div className="embla__slide rounded-md" key={index}>
-              <div className="embla__slide__number rounded-md "><Image src={images[index]} width={1000} height={573} alt='k'   className='w-auto h-full max-h-full rounded-md  border-gray-700' ></Image></div>
+              <div className="embla__slide__number rounded-md ">
+                <Image 
+                 src={images[index]} 
+                 width={1000} 
+                 height={573} 
+                 alt='Product image' 
+                 className='w-auto h-full max-h-full rounded-md  border-gray-700'
+                 priority
+                />
+              </div>
             </div>
           ))}
         </div>

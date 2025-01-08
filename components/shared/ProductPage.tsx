@@ -1,9 +1,6 @@
-'use client'
+// 'use client'
 
-import { useEffect, useState } from 'react'
 import Image from 'next/image'
-import Link from 'next/link'
-import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
@@ -17,31 +14,18 @@ import ContentView from '../pixel/ContentView'
 export default function ProductPage({ productJson, colorsJson }: { productJson: string, colorsJson: string }) {
     const product = JSON.parse(productJson);
     const colors = JSON.parse(colorsJson);
-    const router = useRouter();
+    // const router = useRouter();
 
   return (
     <div className="px-2 sm:px-4 py-4 sm:py-8 max-w-full overflow-x-hidden">
       <ContentView productName={product.name} productCategory={product.category} productId={product._id} contentType="product" value={product.priceToShow} currency="UAH"/>
-        <motion.div
-          initial={{ opacity: 0, y: -50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-            <Button className="inline-flex items-center font-normal text-sky-600 hover:text-sky-800 max-lg:-ml-3 mb-2 sm:mb-4 text-sm sm:text-base" variant="destructive" onClick={() => router.back()}>
-                <ArrowLeft className="mr-1 sm:mr-2" size={16} />
-                Назад до каталогу
-            </Button>
-        </motion.div>
-      
+
       <div className="grid lg:grid-cols-2 gap-6 sm:gap-12">
         <div className="max-lg:hidden">
           <ProdactPage images={product.images} />
         </div>
         
-        <motion.div
-          initial={{ opacity: 0, x: 50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
+        <div
           className="space-y-4 sm:space-y-6 sm:mt-12"
         >
           <h1 className="text-heading1-bold sm:text-[42px] leading-tight sm:leading-[58px] font-bold">{product.name}</h1>
@@ -71,10 +55,7 @@ export default function ProductPage({ productJson, colorsJson }: { productJson: 
             <h2 className="text-xl sm:text-2xl font-semibold mb-2 sm:mb-3">Колір</h2>
             <div className="flex flex-wrap gap-2 sm:gap-4">
               {colors.map((color: { images: string[], params: {name: string, value: string}[] }, index: number) => (
-                <motion.div
-                  key={color.params[0].value}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
+                <div
                 >
                     <TransitionLink href={color.params[0].value} className="w-full h-fit flex justify-center items-center">
                         <Image
@@ -85,7 +66,7 @@ export default function ProductPage({ productJson, colorsJson }: { productJson: 
                             className="rounded-full border-2 border-gray-300 hover:border-blue-500 cursor-pointer max-[425px]:size-12 max-[380px]:size-10"
                         />
                     </TransitionLink>
-                </motion.div>
+                </div>
               ))}
             </div>
           </div>
@@ -94,25 +75,19 @@ export default function ProductPage({ productJson, colorsJson }: { productJson: 
             <AddToCart id={product._id} name={product.name} image={product.images[0]} price={product.price} priceWithoutDiscount={product.priceToShow} variant="full"/>
             <Button className="py-3 sm:py-5 text-sm sm:text-base max-[425px]:w-full" variant="outline">Купити зараз</Button>
           </div>
-        </motion.div>
+        </div>
       </div>
       
       <Separator className="my-6 sm:my-12" />
       
       <div className="grid md:grid-cols-2 gap-6 sm:gap-12">
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+        <div
         >
           <h2 className="text-xl sm:text-2xl font-semibold mb-2 sm:mb-4">Опис</h2>
           <p className="text-sm sm:text-base text-gray-700 leading-relaxed">{product.description}</p>
-        </motion.div>
+        </div>
         
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
+        <div
         >
           <h2 className="text-xl sm:text-2xl font-semibold mb-2 sm:mb-4">Параметри</h2>
           <table className="w-full text-sm sm:text-base">
@@ -125,7 +100,7 @@ export default function ProductPage({ productJson, colorsJson }: { productJson: 
               ))}
             </tbody>
           </table>
-        </motion.div>
+        </div>
       </div>
     </div>
   )
