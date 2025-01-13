@@ -91,6 +91,19 @@ export async function createUrlProduct({ id, name, isAvailable, quantity, url, p
     }
 }
 
+export async function createUrlProductsMany(products: CreateUrlParams[]){
+    try {
+        connectToDB();
+
+        await Product.insertMany(products)
+
+        clearCache("createProduct")
+    } catch (error: any) {
+        throw new Error(`Error creating url-product, ${error.message}`)
+    }
+}
+
+
 export async function createProduct({ id, name, quantity, images, url, priceToShow, price, vendor, category, description, isAvailable, params, customParams }: CreateParams){
     try {
         connectToDB();

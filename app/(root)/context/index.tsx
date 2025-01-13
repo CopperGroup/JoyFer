@@ -16,7 +16,7 @@ export function AppWrapper({ children }: { children: ReactNode }) {
     const [cartData, setCartData] = useState<any[]>([]);
     const [isClient, setIsClient] = useState(false);
     const [priceToPay, setPriceToPay] = useState<any[]>([]);
-
+    
     useEffect(() => {
         if (typeof window !== "undefined") {
             const savedCartData = localStorage.getItem("cartData");

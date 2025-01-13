@@ -65,3 +65,46 @@ export type PixelData = {
     deactivatedAt: string | null;
     events: PixelEvents;
 };
+
+export type Connection = {
+    start: string;
+    end: string;
+    color: string;
+}
+
+type ConfigPathValue = {
+    value: string,
+    attributeOf?: string
+}
+export type Config = {
+    cards: Record<string, string>
+    paths: {
+        Categories: {
+            category_id: ConfigPathValue,
+            name: ConfigPathValue,
+            reference_by: ConfigPathValue
+        },
+        Products: {
+            id: ConfigPathValue,
+            name: ConfigPathValue,
+            price: ConfigPathValue,
+            discount_price: ConfigPathValue,
+            images: ConfigPathValue,
+            available: ConfigPathValue,
+            category: ConfigPathValue,
+            description: ConfigPathValue,
+            quantity: ConfigPathValue,
+            url: ConfigPathValue,
+            vendor: ConfigPathValue,
+            params: ConfigPathValue,
+        },
+        Params: {
+            name: ConfigPathValue,
+            value: ConfigPathValue
+        },
+        Start: {
+            categories: ConfigPathValue,
+            products: ConfigPathValue,
+        }
+    }
+}

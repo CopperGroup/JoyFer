@@ -1,5 +1,5 @@
 import { revalidatePath } from "next/cache";
-import { createUrlProduct, deleteProduct, deleteUrlProducts, fetchUrlProducts, updateUrlProduct } from "./actions/product.actions";
+import { createUrlProduct, createUrlProductsMany, deleteProduct, deleteUrlProducts, fetchUrlProducts, updateUrlProduct } from "./actions/product.actions";
 import { clearCatalogCache } from "./actions/redis/catalog.actions";
 
 interface Product {
@@ -33,6 +33,7 @@ export async function proceedDataToDB(data: Product[], selectedRowsIds: (string 
 
         const processedIds = new Set<string>();
 
+        const newProducts = [];
         for (const product of data) {
             if (product.id && selectedRowsIds.includes(product.id) && !processedIds.has(product.id)) {
                 const existingProductIndex = urlProducts.findIndex(urlProduct => urlProduct.id === product.id);
@@ -60,7 +61,7 @@ export async function proceedDataToDB(data: Product[], selectedRowsIds: (string 
                 } else {
                     //console.log("Create: ", product.id);
 
-                    await createUrlProduct({
+                    newProducts.push({
                         id: product.id,
                         name: product.name,
                         isAvailable: product.isAvailable,
@@ -73,7 +74,7 @@ export async function proceedDataToDB(data: Product[], selectedRowsIds: (string 
                         description: product.description,
                         params: product.params,
                         isFetched: product.isFetched,
-                        category: product.category
+                        category: product.category ? product.category : "No-category"
                     });
                 }
 
@@ -81,6 +82,9 @@ export async function proceedDataToDB(data: Product[], selectedRowsIds: (string 
             }
         }
 
+        if(newProducts.length > 0) {
+            await createUrlProductsMany(newProducts);
+        }
         //console.log("Left products:", leftOverProducts);
         for (const leftOverProduct of leftOverProducts) {
             await deleteProduct({productId: leftOverProduct.id as string}, "/catalog", "keep-catalog-cache");
@@ -88,7 +92,7 @@ export async function proceedDataToDB(data: Product[], selectedRowsIds: (string 
 
         await clearCatalogCache();
 
-        revalidatePath("/")
+        // revalidatePath("/")
     } catch (error: any) {
         throw new Error(`Error proceeding products to DB: ${error.message}`);
     }

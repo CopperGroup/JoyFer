@@ -1,5 +1,3 @@
-
-import xmlParse from "@/lib/fetchProducts";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
@@ -20,7 +18,7 @@ export async function POST(request: NextRequest) {
        }
 
       const data = await response.text();
-      const fetchedProducts = await xmlParse(data);
+      const fetchedProducts = await (data);
       //console.log('dfssdfsd')
   
       

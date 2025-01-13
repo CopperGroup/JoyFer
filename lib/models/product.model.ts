@@ -41,7 +41,12 @@ const productSchema = new mongoose.Schema({
             value: {
                 type: String,
                 required: true
-            }
+            },
+            // type: {
+            //     type: String,
+            //     required: true,
+            //     enum: ["String", "Color", "Number", "Unit"]
+            // }
         }
     ],
     isFetched: {
