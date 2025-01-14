@@ -114,11 +114,10 @@ export default function Connector({ setCurrentStage }: { setCurrentStage: React.
 
   useEffect(() => {
     if(sessionStorage.getItem("tagsMap")) {
-        let counter = 1; // Counter for generating unique IDs
+        let counter = 1;
         const tagsMap = JSON.parse(sessionStorage.getItem("tagsMap") || '[]');
         const result: { id: string, name: string}[] = [];
       
-        // Iterate over the tagDescendantsMap keys
         Object.keys(tagsMap).forEach(tagName => {
           result.push({
             id: `r1-${counter++}`,
@@ -127,8 +126,8 @@ export default function Connector({ setCurrentStage }: { setCurrentStage: React.
 
           tagsMap[tagName].attributes.forEach((attribute: string) => {
               result.push({
-                id: `r1-${counter++}-attribute`, // ID like 'r3-attribute', 'r4-attribute', etc.
-                name: `${tagName}-${attribute}` // Combine the tag name and attribute name
+                id: `r1-${counter++}-attribute`,
+                name: `${tagName}-${attribute}`
               });
             });
         });
@@ -141,22 +140,19 @@ export default function Connector({ setCurrentStage }: { setCurrentStage: React.
 
   useEffect(() => {
       
-      console.log(currentCardIndex)
+      const refCard = cards.filter(card => card.id === currentCard.ref)[0];
       
-      const refCard = cards.filter(card => card.id === (currentCardIndex + 1 < cards.length ? cards[currentCardIndex + 1].ref : 0))[0];
-      
-      const connections = JSON.parse(sessionStorage.getItem(`connection-card-${currentCardIndex + 1 < cards.length ? cards[currentCardIndex + 1].ref : 0}`) || '[]') as Connection[];
+      const refConnections = JSON.parse(sessionStorage.getItem(`connection-card-${currentCard.ref}`) || '[]') as Connection[];
     if(refCard) {
-        const targetElement = refCard.leftElements.find(element => element.name === cards[currentCardIndex + 1].name);
+        const targetElement = refCard.leftElements.find(element => element.name === cards[currentCardIndex].name);
 
-        console.log(targetElement)
         if(targetElement) {
-            const connection = connections.find(conn => conn.start === targetElement.id);
+            const connection = refConnections.find(conn => conn.start === targetElement.id);
 
-            console.log(connection)
             if(connection) {
                 const rightElement = refCard.rightElements.find(element => element.id === connection.end);
             
+                console.log(rightElement)
                 if(rightElement) {
                     if(sessionStorage.getItem("tagsMap")) {
                         let counter = 1;
@@ -166,14 +162,14 @@ export default function Connector({ setCurrentStage }: { setCurrentStage: React.
                         // Iterate over the tagDescendantsMap keys
                         tagsMap[rightElement.name].tags.forEach((tag: string) => {
                             result.push({
-                              id: `r${currentCardIndex + 1}-${counter++}`,
+                              id: `r${currentCardIndex}-${counter++}`,
                               name: tag
                             });
                         });
             
                         tagsMap[rightElement.name].attributes.forEach((attribute: string) => {
                             result.push({
-                              id: `r${currentCardIndex + 1}-${counter++}-attribute`, // ID like 'r3-attribute', 'r4-attribute', etc.
+                              id: `r${currentCardIndex}-${counter++}-attribute`, // ID like 'r3-attribute', 'r4-attribute', etc.
                               name: `${rightElement.name}-${attribute}` // Combine the tag name and attribute name
                             });
                         });
@@ -181,14 +177,13 @@ export default function Connector({ setCurrentStage }: { setCurrentStage: React.
                             if(tagName !== "Content") {
                                 tagsMap[tagName].attributes.forEach((attribute: string) => {
                                     result.push({
-                                      id: `r${currentCardIndex + 1}-${counter++}-attribute`, // ID like 'r3-attribute', 'r4-attribute', etc.
+                                      id: `r${currentCardIndex}-${counter++}-attribute`, // ID like 'r3-attribute', 'r4-attribute', etc.
                                       name: `${tagName}-${attribute}` // Combine the tag name and attribute name
                                     });
                                 });
                             }
                         });
-            
-                        cards[currentCardIndex + 1].rightElements = result;
+                        cards[currentCardIndex].rightElements = result;
                     }
                 }
             }
@@ -196,18 +191,23 @@ export default function Connector({ setCurrentStage }: { setCurrentStage: React.
     }
 
   }, [currentCardIndex])
+  
   useEffect(() => {
-    if(JSON.parse(sessionStorage.getItem(`connection-card-${currentCard.id}`) || '[]').some((connection: Connection) => connection.end.includes('-attribute'))) {
-      setShowAttributes(true)
+    const newConnections = JSON.parse(
+      sessionStorage.getItem(`connection-card-${currentCard.id}`) || '[]'
+    );
+  
+    if (newConnections.some((connection: Connection) => connection.end.includes('-attribute'))) {
+      setShowAttributes(true);
     }
 
-    setConnections(JSON.parse(sessionStorage.getItem(`connection-card-${currentCard.id}`) || '[]'))
-  }, [currentCard])
+    setConnections(newConnections);
+  }, [currentCard]);
+  
 
   useEffect(() => {
     if (selectedLeft && selectedRight) {
       const existingLeftConnection = connections.find(conn => conn.start === selectedLeft)
-      const existingRightConnection = connections.find(conn => conn.end === selectedRight)
 
       if (existingLeftConnection) {
         setSelectedLeft(null)
@@ -268,7 +268,9 @@ export default function Connector({ setCurrentStage }: { setCurrentStage: React.
   }
 
   const toggleShowAttributes = () => {
+    console.log(connections)
     setConnections(prevConnections =>
+        // also add card i to be verified
         prevConnections.filter(connection => !connection.end.endsWith('-attribute'))
       );
       setShowAttributes(prev => !prev);
