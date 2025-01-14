@@ -10,6 +10,7 @@ import { toast } from "@/components/ui/use-toast"
 import { stages } from './XMLParser';
 import getTagsMap from '@/lib/xml-parser/getTagsMap';
 import { useXmlParser } from '@/app/admin/context';
+import axios from "axios";
 
 export default function XmlProcessor({ setCurrentStage }: { setCurrentStage: React.Dispatch<React.SetStateAction<keyof typeof stages>> }) {
   const [fileName, setFileName] = useState<string | null>(null);
@@ -59,9 +60,11 @@ export default function XmlProcessor({ setCurrentStage }: { setCurrentStage: Rea
 
   const handleFetchStart = async () => {
     try {
-      const response = await fetch(inputValue);
-      const xmlContent = await response.text();
-      setFileName('Fetched XML');
+      const response = await axios.post("/api/getProducts", { url: inputValue });
+
+      console.log(response.data.data)
+      setData(response.data.data);
+      setXmlString(response.data.data)
       setUploadStatus('success');
       toast({
         title: "XML Fetched",
@@ -80,6 +83,7 @@ export default function XmlProcessor({ setCurrentStage }: { setCurrentStage: Rea
 
   const handleGetTags = async () => {
     if(data) {
+        console.log(data)
         const tagsMap = await getTagsMap(data);
 
         sessionStorage.setItem("tagsMap", JSON.stringify(tagsMap))
@@ -142,11 +146,16 @@ export default function XmlProcessor({ setCurrentStage }: { setCurrentStage: Rea
 
         <div className="w-full h-[2px] bg-gray-200 my-6 rounded-full"></div>
 
-        <Button onClick={handleGetTags} variant="outline" size="icon">
-                <ChevronRight className="h-4 w-4" />
-        </Button>
-        {/* Here you would integrate your GatherProductsInfo component */}
-        {/* <GatherProductsInfo /> */}
+        <div className="w-full flex justify-end">
+            <Button 
+                onClick={handleGetTags} 
+                className="text-base-semibold flex justify-center text-white"
+            >
+            Next
+            <ChevronRight className="ml-2 h-4 w-4" />
+            </Button>
+
+        </div>
       </CardContent>
     </Card>
   );

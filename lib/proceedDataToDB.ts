@@ -1,5 +1,5 @@
 import { revalidatePath } from "next/cache";
-import { createUrlProduct, createUrlProductsMany, deleteProduct, deleteUrlProducts, fetchUrlProducts, updateUrlProduct } from "./actions/product.actions";
+import { createUrlProduct, createUrlProductsMany, deleteProduct, deleteUrlProducts, fetchUrlProducts, updateUrlProduct, updateUrlProductsMany } from "./actions/product.actions";
 import { clearCatalogCache } from "./actions/redis/catalog.actions";
 
 interface Product {
@@ -27,23 +27,22 @@ export async function proceedDataToDB(data: Product[], selectedRowsIds: (string 
         const stringifiedUrlProducts = await fetchUrlProducts("json");
         let urlProducts: Product[] = JSON.parse(stringifiedUrlProducts as string);
 
-        const leftOverProducts = urlProducts.filter(urlProduct => 
-            !data.some(product => product.id === urlProduct.id)
+        const leftOverProducts = urlProducts.filter(
+            urlProduct => !data.some(product => product.id === urlProduct.id)
         );
 
         const processedIds = new Set<string>();
-
         const newProducts = [];
+        const productsToUpdate = [];
+
         for (const product of data) {
             if (product.id && selectedRowsIds.includes(product.id) && !processedIds.has(product.id)) {
                 const existingProductIndex = urlProducts.findIndex(urlProduct => urlProduct.id === product.id);
 
                 if (existingProductIndex !== -1) {
-                    const urlProduct = urlProducts[existingProductIndex];
-                    //console.log("Update: ", product.id);
-                    
-                    await updateUrlProduct({
-                        _id: urlProduct._id,
+                    // Add to bulk update array
+                    productsToUpdate.push({
+                        _id: urlProducts[existingProductIndex]._id,
                         id: product.id,
                         name: product.name,
                         isAvailable: product.isAvailable,
@@ -56,11 +55,10 @@ export async function proceedDataToDB(data: Product[], selectedRowsIds: (string 
                         description: product.description,
                         params: product.params,
                         isFetched: product.isFetched,
-                        category: product.category
+                        category: product.category,
                     });
                 } else {
-                    //console.log("Create: ", product.id);
-
+                    // Add to new products array
                     newProducts.push({
                         id: product.id,
                         name: product.name,
@@ -74,7 +72,7 @@ export async function proceedDataToDB(data: Product[], selectedRowsIds: (string 
                         description: product.description,
                         params: product.params,
                         isFetched: product.isFetched,
-                        category: product.category ? product.category : "No-category"
+                        category: product.category || "No-category",
                     });
                 }
 
@@ -82,17 +80,24 @@ export async function proceedDataToDB(data: Product[], selectedRowsIds: (string 
             }
         }
 
-        if(newProducts.length > 0) {
+        // Perform bulk update
+        if (productsToUpdate.length > 0) {
+            await updateUrlProductsMany(productsToUpdate);
+        }
+
+        // Perform bulk insert for new products
+        if (newProducts.length > 0) {
             await createUrlProductsMany(newProducts);
         }
-        //console.log("Left products:", leftOverProducts);
+
+        // Delete left-over products
         for (const leftOverProduct of leftOverProducts) {
-            await deleteProduct({productId: leftOverProduct.id as string}, "/catalog", "keep-catalog-cache");
+            await deleteProduct({ productId: leftOverProduct.id as string }, "/catalog", "keep-catalog-cache");
         }
 
         await clearCatalogCache();
 
-        // revalidatePath("/")
+        return null;
     } catch (error: any) {
         throw new Error(`Error proceeding products to DB: ${error.message}`);
     }

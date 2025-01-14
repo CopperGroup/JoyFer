@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
 
       const {url} = body
 
-      //console.log(url)
+      console.log(url, request)
 
       const response = await fetch(url, { cache: 'no-store'});
 
@@ -18,14 +18,13 @@ export async function POST(request: NextRequest) {
        }
 
       const data = await response.text();
-      const fetchedProducts = await (data);
+      // const fetchedProducts = await (data);
       //console.log('dfssdfsd')
   
       
       
       return NextResponse.json({
-      
-        fetchedProducts
+        data
     });
   } catch (error: any) {
       return NextResponse.json({ error: error.message }, { status: 500 });

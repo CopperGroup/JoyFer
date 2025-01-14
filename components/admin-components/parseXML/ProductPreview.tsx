@@ -2,21 +2,15 @@
 
 import React, { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Switch } from "@/components/ui/switch"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { stages } from './XMLParser'
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { useXmlParser } from '@/app/admin/context'
-import { Button } from '@/components/ui/button'
-
-const values = ["String", "Color", "Number", "Unit"] as const;
+import { stages } from './XMLParser'
 
 interface Param {
   name: string
   value: string
-  type: typeof values[number]
+  type: string
 }
 
 interface Product {
@@ -53,112 +47,84 @@ export default function ProductPreview({ setCurrentStage }: { setCurrentStage: R
     const { sample } = useXmlParser();
 
     useEffect(() => {
-        setProduct(JSON.parse(sample || ""));
+        if (sample) {
+            setProduct(JSON.parse(sample));
+        }
     }, [sample])
-
 
     const handleGetItems = () => {
         setCurrentStage("get-data")
     }
+
     return (
-        <Card className="w-full max-w-4xl mx-auto">
-        <CardHeader>
-            <CardTitle className="text-heading2-bold font-bold">Product Details</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-            <div>
-                <Label htmlFor="id">ID</Label>
-                <Input id="id" value={product.id} readOnly />
-            </div>
-            <div>
-                <Label htmlFor="available">Available</Label>
-                <Switch id="available" checked={product.isAvailable} />
-            </div>
-            </div>
-
-            <div>
-            <Label htmlFor="name">Name</Label>
-            <Input id="name" value={product.name} readOnly/>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-            <div>
-                <Label htmlFor="quantity">Quantity</Label>
-                <Input id="quantity" value={product.quantity} readOnly/>
-            </div>
-            <div>
-                <Label htmlFor="url">URL</Label>
-                <Input id="url" value={product.url} readOnly/>
-            </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-            <div>
-                <Label htmlFor="price">Price</Label>
-                <Input id="price" value={product.price} readOnly/>
-            </div>
-            <div>
-                <Label htmlFor="discountPrice">Discount Price</Label>
-                <Input id="discountPrice" value={product.priceToShow} readOnly/>
-            </div>
-            </div>
-
-            <div>
-            <Label htmlFor="images">Images</Label>
-            <div className="flex flex-wrap gap-2">
-                {product.images.map((image, index) => (
-                <img key={index} src={image} alt={`Product ${index + 1}`} className="w-20 h-20 object-cover rounded" />
-                ))}
-            </div>
-            </div>
-
-            <div>
-            <Label htmlFor="vendor">Vendor</Label>
-            <Input id="vendor" value={product.vendor} readOnly/>
-            </div>
-
-            <div>
-            <Label htmlFor="description">Description</Label>
-            <Textarea id="description" value={product.description} rows={4} readOnly/>
-            </div>
-
-            <div>
-            <Label>Parameters</Label>
-            <div className="space-y-2">
-                {product.params.map((param, index) => (
-                <div key={index} className="flex items-center space-x-2">
-                    <Input value={param.name} placeholder="Name" className="w-1/3" readOnly/>
-                    <Input value={param.value} placeholder="Value" className="w-1/3" readOnly/>
-                    <Select defaultValue={param.type} onValueChange={(value: typeof values[number]) => setProduct((prev) => {
-                                const updatedParams = [...prev.params]; 
-                                updatedParams[index] = { ...updatedParams[index], type: value };
-                                return { ...prev, params: updatedParams };
-                                })}>
-                    <SelectTrigger className="w-1/3">
-                        <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {values.map((value, index) => (
-                            <SelectItem key={index} value={value}>{value}</SelectItem>
-                        ))}
-                    </SelectContent>
-                    </Select>
-                    {param.type === "Unit" && (
-                        <Input value={param.type} placeholder="Unit name (cm)" className="w-1/12"/>
-                    )}
+        <Card className="w-full max-w-[1600px] mx-auto">
+            <CardHeader>
+                <CardTitle className="text-heading2-bold">Product Preview</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                        <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
+                            {product.images[0] && (
+                                <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
+                            )}
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {product.images.slice(1).map((image, index) => (
+                                <img 
+                                    key={index} 
+                                    src={image} 
+                                    alt={`Product ${index + 2}`} 
+                                    className="w-20 h-20 object-cover rounded-md"
+                                />
+                            ))}
+                        </div>
+                    </div>
+                    <div className="space-y-4">
+                        <h2 className="text-heading3-bold">{product.name}</h2>
+                        <div className="flex items-center space-x-2">
+                            <Badge variant={product.isAvailable ? "default" : "secondary"}>
+                                {product.isAvailable ? "Available" : "Unavailable"}
+                            </Badge>
+                            <span className="text-small-medium text-gray-500">ID: {product.id}</span>
+                        </div>
+                        <div className="flex items-baseline space-x-2">
+                            <span className="text-body-bold">${product.priceToShow.toFixed(2)}</span>
+                            {product.price !== product.priceToShow && (
+                                <span className="text-base-regular text-gray-500 line-through">${product.price.toFixed(2)}</span>
+                            )}
+                        </div>
+                        <p className="text-base-regular text-gray-600">{product.description}</p>
+                        <div className="grid grid-cols-2 gap-2 text-small-medium">
+                            <div>
+                                <span className="font-semibold">Vendor:</span> {product.vendor}
+                            </div>
+                            <div>
+                                <span className="font-semibold">Category:</span> {product.category}
+                            </div>
+                            <div>
+                                <span className="font-semibold">Quantity:</span> {product.quantity}
+                            </div>
+                            <div>
+                                <span className="font-semibold">URL:</span> <a href={product.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{product.url.slice(0, 20)}...</a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                ))}
-            </div>
-            </div>
-
-            <div>
-            <Label htmlFor="category">Category</Label>
-            <Input id="category" value={product.category} readOnly/>
-            </div>
-
-            <Button onClick={handleGetItems}>Start</Button>
-        </CardContent>
+                <div className="mt-6">
+                    <h3 className="text-heading4-medium mb-2">Parameters</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                        {product.params.map((param, index) => (
+                            <div key={index} className="bg-gray-50 p-2 rounded-md">
+                                <span className="text-small-semibold">{param.name}:</span> <span className="text-small-regular">{param.value}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+                <div className="mt-6">
+                    <Button onClick={handleGetItems} className="w-full text-base-semibold text-white">Start Processing</Button>
+                </div>
+            </CardContent>
         </Card>
     )
 }

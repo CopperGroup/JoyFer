@@ -103,6 +103,24 @@ export async function createUrlProductsMany(products: CreateUrlParams[]){
     }
 }
 
+export async function updateUrlProductsMany(products: Partial<CreateUrlParams>[]) {
+    try {
+        await connectToDB();
+
+        const bulkOperations = products.map(product => ({
+            updateOne: {
+                filter: { _id: product._id },
+                update: { $set: product },
+            },
+        }));
+
+        await Product.bulkWrite(bulkOperations);
+
+        clearCache("createProduct");
+    } catch (error: any) {
+        throw new Error(`Error updating url-products in bulk, ${error.message}`);
+    }
+}
 
 export async function createProduct({ id, name, quantity, images, url, priceToShow, price, vendor, category, description, isAvailable, params, customParams }: CreateParams){
     try {

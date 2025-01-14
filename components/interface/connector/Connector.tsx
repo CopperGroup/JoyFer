@@ -299,13 +299,13 @@ export default function Connector({ setCurrentStage }: { setCurrentStage: React.
   }
   
   return (
-    <div className="w-full max-w-4xl mx-auto p-6 space-y-6">
+    <div className="w-full mx-auto p-6 space-y-6">
       <Card className="w-full rounded-xl overflow-hidden">
         <CardContent className="p-6">
-          <div className="text-center mb-6">
-            <h1 className="text-heading2-bold font-bold mb-2">Creative Connection Interface</h1>
+          <div className="mb-6">
+            <h1 className="text-heading2-bold font-bold mb-2">Створіть Конфігурацію Парсингу</h1>
             <p className="text-muted-foreground">
-              Connect elements from the left column to the right column. Each element can only have one connection.
+              Connect elements from the left column to the right column. Each left element can only have one connection.
             </p>
           </div>
           <div className="flex justify-end mb-4">

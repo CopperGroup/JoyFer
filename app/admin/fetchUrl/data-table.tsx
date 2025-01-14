@@ -41,6 +41,7 @@ import {
 } from "@/components/ui/table"
 import { proceedDataToDB } from "@/lib/proceedDataToDB"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
 
 export type Product = {
   _id: string
@@ -81,6 +82,8 @@ export function DataTable<TData extends Product, TValue>({
   const [rowSelection, setRowSelection] = React.useState({})
 
   const [proceedingState, setProceedingState] = React.useState("Зберегти");
+
+  const router = useRouter();
 
   const table = useReactTable({
     data,
@@ -123,7 +126,9 @@ export function DataTable<TData extends Product, TValue>({
   
       setTimeout(() => {
         setProceedingState("Зберегти")
-      }, 2000)
+      }, 4000)
+
+      router.push("/admin/products")
     }
   }
 

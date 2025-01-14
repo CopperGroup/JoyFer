@@ -44,11 +44,11 @@ export default function XMLParser() {
       <div className="mb-6">
         <CurrentStageComponent setCurrentStage={setCurrentStage}/>
       </div>
-      <div className="flex justify-center space-x-4">
+      {/* <div className="flex justify-center space-x-4">
         <Button onClick={handleRestart} variant="outline">
           Restart Parsing
         </Button>
-      </div>
+      </div> */}
     </div>
   );
 }

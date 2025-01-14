@@ -83,7 +83,7 @@ export default function GatherProductsInfo() {
         );
     } else {
         // @ts-ignore
-        return  <DataTable columns={columns} data={fetchedProducts} /> 
+        return  (<><h2 className="text-heading2-bold mt-4 mb-6">Перенесіть отримані товари</h2><DataTable columns={columns} data={fetchedProducts} /></>)
         ;
     }
 }
