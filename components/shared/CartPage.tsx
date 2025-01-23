@@ -8,6 +8,7 @@ import { useEffect } from 'react';
 import Link from 'next/link';
 import { ProductType } from '@/lib/types/types';
 import { trackFacebookEvent } from '@/helpers/pixel';
+import { Store } from '@/constants/store';
 
 
 const CartPage = ({setIsOpened }: {setIsOpened: (value: boolean) => void }) => {
@@ -115,8 +116,8 @@ function minus(index:number){
                           <Button onClick={()=>plus(index)} variant="ghost" className='w-5 h-5'>+</Button>
                         </div>
                         <div className="w-1/2 h-full flex flex-col items-end justify-end">
-                          <p className="text-small-medium text-gray-700 line-through decoration-red-500 mr-3">₴{data.priceWithoutDiscount}</p>
-                          <p className="w-full text-black h-full font-semibold text-end px-2">₴{data.price}</p>
+                          <p className="text-small-medium text-gray-700 line-through decoration-red-500 mr-3">{Store.currency_sign}{data.priceWithoutDiscount}</p>
+                          <p className="w-full text-black h-full font-semibold text-end px-2">{Store.currency_sign}{data.price}</p>
                         </div>
                       </div>
                     </div>

@@ -5,30 +5,13 @@ import { connectToDB } from "../mongoose"
 import User from "../models/user.model";
 import { revalidatePath } from "next/cache";
 import Value from "../models/value.model";
-import { ProductType } from "../types/types";
+import { CreateUrlParams, ProductType } from "../types/types";
 import { clearCatalogCache } from "./redis/catalog.actions";
 import Order from "../models/order.model";
 import clearCache from "./cache";
-
-interface CreateUrlParams {
-    _id?: string,
-    id: string | null,
-    name: string | null,
-    isAvailable: boolean,
-    quantity: number,
-    url: string | null,
-    priceToShow: number,
-    price: number,
-    images: (string | null)[],
-    vendor: string | null,
-    description: string | null,
-    params: {
-        name: string | null,
-        value: string | null
-    }[],
-    isFetched: boolean
-    category:string
-}
+import Category from "../models/category.model";
+import { updateCategories } from "./categories.actions";
+import { ObjectId } from "mongoose";
 
 interface CreateParams {
     id: string,
@@ -91,17 +74,20 @@ export async function createUrlProduct({ id, name, isAvailable, quantity, url, p
     }
 }
 
-export async function createUrlProductsMany(products: CreateUrlParams[]){
+export async function createUrlProductsMany(products: CreateUrlParams[]) {
     try {
-        connectToDB();
+      connectToDB();
+  
+      const createdProducts = await Product.insertMany(products);
 
-        await Product.insertMany(products)
-
-        clearCache("createProduct")
+      await updateCategories(createdProducts, "create")
+  
+      clearCache("createProduct");
     } catch (error: any) {
-        throw new Error(`Error creating url-product, ${error.message}`)
+      throw new Error(`Error creating url-product, ${error.message}`);
     }
-}
+  }
+  
 
 export async function updateUrlProductsMany(products: Partial<CreateUrlParams>[]) {
     try {
@@ -328,7 +314,7 @@ export async function getProductsProperities(productId: string, type?: "json") {
         connectToDB();
 
         const products = await Product.find({});
-        const product = await Product.findOne({ id: productId });
+        const product = await Product.findOne({ _id: productId });
 
         let allCategories: { [key: string]: number } = {};
 
@@ -351,7 +337,7 @@ export async function getProductsProperities(productId: string, type?: "json") {
         if(type === "json") {
             return JSON.stringify({
             properities: [
-                { name: "id", value: productId }, 
+                { name: "id", value: product.id }, 
                 { name: "name", value: product.name }, 
                 { name: "price", value: product.price.toString() }, 
                 { name: "priceToShow",  value: product.priceToShow.toString() }, 
@@ -486,7 +472,58 @@ export async function findAllProductsCategories(type?: "json") {
   }
 }
 
-export async function deleteProduct(id: { productId: string} | {product_id: string}, path: string, cache?: "keep-catalog-cache") {
+export async function deleteManyProducts(_ids: string[], cache?: "keep-catalog-cache") {
+    try {
+        connectToDB();
+
+        // Find products by their IDs
+        const products = await Product.find({ _id: { $in: _ids}});
+
+        if (!products.length) {
+            throw new Error("No products found for deletion");
+        }
+
+        // Loop over the products to handle likes and orders before deletion
+        for (const product of products) {
+            const usersWhoLikedProduct = await User.find({ _id: { $in: product.likedBy }});
+
+            if (usersWhoLikedProduct) {
+                for (const user of usersWhoLikedProduct) {
+                    user.likes.pull(product._id);
+                    await user.save();
+                }
+            }
+
+            const orders = await Order.find({ 'products.product': product._id });
+
+            for (const order of orders) {
+                for (const orderedProduct of order.products) {
+                    orderedProduct.product = DELETEDPRODUCT_ID;
+                }
+
+                await order.save();
+            }
+
+            // Delete the product
+            await Product.deleteOne({ _id: product._id });
+        }
+
+        if (!cache) {
+            await clearCatalogCache();
+        } else {
+            console.log("Catalog cache cleared.");
+        }
+
+        console.log("Deleted products")
+        clearCache("deleteProduct");
+
+    } catch (error: any) {
+        throw new Error(`Error deleting products: ${error.message}`);
+    }
+}
+
+
+export async function deleteProduct(id: { productId: string} | {product_id: string}, cache?: "keep-catalog-cache") {
   try {
     connectToDB();
 
@@ -535,6 +572,21 @@ export async function deleteProduct(id: { productId: string} | {product_id: stri
                 await order.save();
             }
 
+            const categories = await Category.find({ products: product._id })
+
+            console.log(categories[0].products)
+            // for(let category of categories) {
+
+            //     console.log("Category products: ", category.products);
+            //     category.products = category.products.filter((categoryProductId: ObjectId) => categoryProductId.toString() !== product._id.toString())
+            //     console.log("Category products: ", category.products);
+
+            //     await category.save()
+            // }
+
+            await updateCategories([product], "delete")
+
+            console.log(categories[0].products)
             if(searchParam === "id") {
                 await Product.deleteOne({ id: productId });
             } else if(searchParam === "_id") {
@@ -546,208 +598,11 @@ export async function deleteProduct(id: { productId: string} | {product_id: stri
             } else {
                 console.log("Catalog cache cleared.");
             }
-            revalidatePath(path);
             
             clearCache("deleteProduct")
         }
-
     }
   } catch (error: any) {
     throw new Error(`Error deleting product: ${id} ${error.message}`)
   }
 }
-
-export async function fetchCategoriesProperities() {
-    try {
-      connectToDB();
-  
-      const categories: { [key: string]: { totalProducts: number, totalValue: number, categoryProducts: ProductType[] }} = {};
-  
-      const categoriesAverageProductValue: { [key: string]: number } = {};
-  
-      const products = await Product.find({ _id: { $ne: DELETEDPRODUCT_ID } });
-
-      const productsIds = [];
-      for(const product of products) {
-          if(!categories[product.category]) {
-              categories[product.category] = { totalProducts: 0, totalValue: 0, categoryProducts: []};
-          }
-  
-          categories[product.category].totalProducts += 1;
-          categories[product.category].totalValue += product.priceToShow;
-  
-          categories[product.category].categoryProducts.push(product);
-      }
-  
-      const categoriesList = Object.entries(categories).map(([ category, value ]) => ({
-          category,
-          values: { totalProducts: value.totalProducts, totalValue: value.totalValue, averageProductPrice: parseFloat((value.totalValue / value.totalProducts).toFixed(2)), stringifiedProducts: JSON.stringify(value.categoryProducts)}
-      }))
-
-      return categoriesList;
-    } catch (error: any) {
-      throw new Error(`Error fetching categories properities ${error.message}`)
-    }
-}
-
-export async function fetchCategory({ categoryName }: { categoryName: string }) {
-  try {
-    connectToDB();
-
-    const products = await Product.find({ category: categoryName });
-
-    const category = { categoryName: categoryName, totalProducts: 0, totalValue: 0, averageProductPrice: 0, averageDiscountPercentage: 0}
-
-    let totalPriceWithoutDiscount = 0;
-
-    for(const product of products) {
-        category.totalProducts += 1;
-        category.totalValue += product.priceToShow;
-        totalPriceWithoutDiscount += product.price;
-    }
-
-    category.averageProductPrice = category.totalProducts != 0 ? category.totalValue / category.totalProducts : 0;
-
-    category.averageDiscountPercentage = 100 - parseInt(
-        ((totalPriceWithoutDiscount != 0 ? category.totalValue / totalPriceWithoutDiscount : 0) * 100).toFixed(0)
-    );
-
-    return {...category, stringifiedProducts: JSON.stringify(products)} 
-  } catch (error: any) {
-    throw new Error(`${error.message}`)
-  }
-}
-
-export async function setCategoryDiscount(categoryName: string, percentage: number) {
-    try {
-        connectToDB()
-
-        const products = await Product.find({ category: categoryName });
-
-        for(const product of products) {
-            product.priceToShow = product.price - (product.price * (percentage / 100))
-
-            await product.save()
-        }
-
-        await clearCatalogCache();
-
-        clearCache("updateProduct")
-    } catch (error: any) {
-        throw new Error(`Error changing discount for all the products in the category: ${error.message}`)
-    }
-}
-
-export async function changeProductsCategory({productsIds, categoryName}: {productsIds: string[], categoryName: string}) {
-    try {
-        connectToDB(); 
-
-        const products = await Product.find({ _id: { $in: productsIds } });
-
-        for(const product of products) {
-            product.category = categoryName;
-
-            await product.save()
-        }
-
-        await clearCatalogCache();
-
-        clearCache("updateProduct")
-    } catch (error: any) {
-        throw new Error(`Error changing products' category: ${error.message}`)        
-    }
-}
-
-export async function fetchCategoriesProducts(categoryName: string, type?: 'json') {
-  try {
-    connectToDB();
-
-    const products = await Product.find({ category: categoryName });
-
-
-    if(type === 'json'){
-       return JSON.stringify(products)
-    } else {
-       return products
-    }
-    
-  } catch (error: any) {
-    throw new Error(`Error fetching categories products: ${error.message}`)
-  }
-}
-
-export async function changeCategoryName({ categoryName, newName }: { categoryName: string, newName: string }) {
-  try {
-    connectToDB();
-
-    const products = await Product.find({ category: categoryName });
-
-    for(const product of products) {
-        product.category = newName;
-
-        await product.save();
-    }
-
-    await clearCatalogCache();
-
-    clearCache("updateProduct")
-  } catch (error: any) {
-    throw new Error(`Error changing categorie's name: ${error.message}`)
-  }
-}
-
-type DeleteCategoryProps = {
-    categoryName: string;
-} & ( { removeProducts: true } | { removeProducts: false, categoryToMoveProducts: string})
-
-export async function deleteCategory(props: DeleteCategoryProps) {
-    try {
-        connectToDB();
-
-        const products = await Product.find({ category: props.categoryName});
-
-        const productIds: string[] = []
-
-        for(const product of products) {
-            if(props.removeProducts) {
-                productIds.push(product._id)
-            } else {
-                product.category = props.categoryToMoveProducts;
-
-                await product.save();
-            }
-        }
-
-        //console.log(productIds);
-
-        if(props.removeProducts) {
-            for(const _id of productIds) {
-                //console.log(productIds);
-                //console.log("Id", _id)
-                await deleteProduct({product_id: _id}, "/admin")
-            }
-
-            const orders = await Order.find({  'products.product': { $in: productIds } })
-
-            for(const order of orders) {
-                for(let product of order.products) {
-                    if(productIds.includes(product)) {
-                        product = DELETEDPRODUCT_ID
-                    }
-                }
-
-                await order.save();
-            }
-        } 
-
-        await clearCatalogCache();
-
-        clearCache("updateProduct")
-    } catch (error: any) {
-        throw new Error(`Error deleting category: ${error.message}`)
-    }
-}
-
-
-
-

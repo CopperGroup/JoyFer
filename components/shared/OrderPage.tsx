@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { ArrowLeft, MapPin, Phone, Mail, MessageSquare, CreditCard, Truck } from 'lucide-react'
 import OrderedProductCard from "@/components/cards/OrderedProductCard"
+import { Store } from '@/constants/store'
 
 interface Product {
   product: {
@@ -162,7 +163,7 @@ export default function OrderPage({ orderJson }: { orderJson: string}) {
           ))}
         </div>
         <div className="flex justify-end items-center mt-6">
-          <p className="text-xl font-semibold">Загальна вартість: <span className="text-body-semibold text-green-600">{order.value}₴</span></p>
+          <p className="text-xl font-semibold">Загальна вартість: <span className="text-body-semibold text-green-600">{order.value}{Store.currency_sign}</span></p>
         </div>
       </motion.div>
     </div>

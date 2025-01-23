@@ -9,6 +9,7 @@ import { Calendar } from "../ui/calendar"
 import Image from "next/image"
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "../ui/carousel"
 import Link from "next/link"
+import { Store } from "@/constants/store"
 
 const chartData = [
   { month: "January", desktop: 186, mobile: 80 },
@@ -119,7 +120,7 @@ const Dashboard = ({ stringifiedData }: { stringifiedData: string }) => {
     <div className="w-full h-full py-5 px-2 sm:py-10 sm:px-4 pb-20 max-[425px]:px-0">
       <div className="w-full h-fit flex justify-between items-end max-lg:flex-col max-lg:items-start max-lg:justify-center">
         <div className="w-fit h-fit flex items-start mb-4 sm:mb-0">
-          <h2 className="text-[48px] lg:text-[64px] font-semibold max-md:text-[40px] max-[425px]:text-[36px]">₴{timePeriod.totalValue.toFixed(2)}</h2>
+          <h2 className="text-[48px] lg:text-[64px] font-semibold max-md:text-[40px] max-[425px]:text-[36px]">{Store.currency_sign}{timePeriod.totalValue.toFixed(2)}</h2>
           <Image
             src={previewMode === "Percentage" ? (timePeriod.percentageStats.totalValue >= 0 ? "/assets/arrow-right-up-zig-zag.svg" : "/assets/arrow-right-down-zig-zag-red.svg"): timePeriod.numericStats.totalValue >= 0 ? "/assets/arrow-right-up-zig-zag.svg" : "/assets/arrow-right-down-zig-zag-red.svg"}
             height={24}

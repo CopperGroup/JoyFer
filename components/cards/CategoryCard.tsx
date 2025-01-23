@@ -1,11 +1,10 @@
-import Image from "next/image"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { MoreVertical, Edit, Trash2, BarChart2, Eye } from "lucide-react"
+import { MoreVertical, Edit, Trash2, BarChart2, Eye, Delete } from "lucide-react"
 import { Category } from "@/lib/types/types"
-import DeleteCategoryButton from "../interface/categories/DeleteCategoryButton"
-import EditCategoryButton from "../interface/categories/EditCategoryButton"
+import { Store } from "@/constants/store"
+import { InDevelopment } from "../shared/InDevelopment"
 
 function formatNumber(num: number): string {
   if (num >= 1000000) {
@@ -29,27 +28,33 @@ const CategoryCard = ({ categoryInfo }: {categoryInfo: Category}) => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56 bg-white">
                   <DropdownMenuItem className="cursor-pointer">
-                    <Link href={`/admin/categories/${categoryInfo.category.replace(" ", "_")}`} className="w-full h-fit flex items-center p-0">
+                    <Link href={`/admin/categories/${categoryInfo.category._id}`} className="w-full h-fit flex items-center p-0">
                       <Eye className="mr-2 h-4 w-4"/>
                       <span>View</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem className="cursor-pointer">
-                    <EditCategoryButton categoryName={categoryInfo.category} stringifiedProducts={categoryInfo.values.stringifiedProducts}/>
+                    <Link href={`/admin/categories/edit/${categoryInfo.category._id}`} className="w-full h-fit flex items-center p-0">
+                      <Edit className="mr-2 h-4 w-4"/>
+                      <span>Edit</span>
+                    </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem className="flex items-center text-red-500 cursor-pointer hover:text-red-700 transition-colors duration-200">
-                    <DeleteCategoryButton categoryName={categoryInfo.category}/>
+                    <Link href={`/admin/categories/edit/${categoryInfo.category._id}`} className="w-full h-fit flex items-center p-0">
+                      <Trash2 className="mr-2 h-4 w-4"/>
+                      <span>Delete</span>
+                    </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="cursor-pointer">
-                    <BarChart2 className="mr-2 h-4 w-4" />
-                    <span>Аналітика</span>
+                  <DropdownMenuItem className="text-slate-300">
+                      <BarChart2 className="mr-2 h-4 w-4" />
+                      <span>Аналітика</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4 truncate">
-                {categoryInfo.category || 'Unnamed Category'}
+              <h2 className="text-heading4-medium font-bold text-gray-800 mb-4 truncate">
+                {categoryInfo.category.name || 'Unnamed Category'}
               </h2>
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-white p-4 rounded-lg shadow-inner">
@@ -60,14 +65,14 @@ const CategoryCard = ({ categoryInfo }: {categoryInfo: Category}) => {
                 </div>
                 <div className="bg-white p-4 rounded-lg shadow-inner">
                   <p className="text-sm font-medium text-gray-500 mb-1">Total Value</p>
-                  <p className="text-2xl font-bold text-gray-800 truncate" title={`$${categoryInfo.values.totalValue.toFixed(2)}`}>
-                    ${formatNumber(categoryInfo.values.totalValue)}
+                  <p className="text-2xl font-bold text-gray-800 truncate" title={`${Store.currency_sign}${categoryInfo.values.totalValue.toFixed(2)}`}>
+                    {Store.currency_sign}{formatNumber(categoryInfo.values.totalValue)}
                   </p>
                 </div>
                 <div className="col-span-2 bg-white p-4 rounded-lg shadow-inner">
                   <p className="text-sm font-medium text-gray-500 mb-1">Average Price</p>
                   <p className="text-2xl font-bold text-gray-800 truncate" title={`$${categoryInfo.values.averageProductPrice.toFixed(2)}`}>
-                    ${formatNumber(categoryInfo.values.averageProductPrice)}
+                    {Store.currency_sign}{formatNumber(categoryInfo.values.averageProductPrice)}
                   </p>
                 </div>
               </div>

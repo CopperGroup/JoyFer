@@ -1,289 +1,192 @@
-"use client";
+"use client"
 
-import { useCallback, useEffect, useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
-import { Trash2, ArrowRight, AlertTriangle, MoveRight } from "lucide-react";
-import { deleteCategory, findAllProductsCategories } from "@/lib/actions/product.actions";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ReadOnly } from "@/lib/types/types";
+import { useState } from "react"
+import { AlertTriangle } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
-interface DeleteCategoryButtonProps {
-    className?: string;
-    categoryName: string;
-    onDialogChange?: (isOpen: boolean) => void;
-    customStyles? : {
-        marginToIcon: string
-    }
+interface Category {
+  categoryId: string
+  name: string
 }
 
-const DeleteCategoryButton = (props: ReadOnly<DeleteCategoryButtonProps>) => {
-  const [isMainDialogOpen, setIsMainDialogOpen] = useState(false);
-  const [isMoveDialogOpen, setIsMoveDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+interface DeleteAndMoveProductsDialogProps {
+  categoryName: string
+  allCategories: Category[]
+  onDeleteAndMove: (newCategoryName: string) => void
+  onCancel: () => void
+}
 
-  const [newCategoryName, setNewCategoryName] = useState("");
-  const [newCategory, setNewCategory] = useState<boolean>(false);
-  const [confirmationCategoryName, setConfirmationcategoryName ] = useState<string>("")
-  const [deleteConfirmation, setDeleteConfirmation] = useState("");
+export function DeleteCategory({
+  categoryName,
+  allCategories,
+  onDeleteAndMove,
+  onCancel,
+}: DeleteAndMoveProductsDialogProps) {
+  const [isOpen, setIsOpen] = useState(false)
+  const [newCategory, setNewCategory] = useState(false)
+  const [newCategoryName, setNewCategoryName] = useState("")
+  const [confirmationCategoryName, setConfirmationCategoryName] = useState("")
+  const [deleteConfirmation, setDeleteConfirmation] = useState("")
 
-  const [categoriesNames, setCategoriesNames] = useState<{name: string, amount:number}[]>([])
-
-  const preventClosing = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleCancelDelete = () => {
+    setIsOpen(false)
+    onCancel()
   }
 
-  useEffect(() => {
-    const fetchCategoriesNames = async () => {
-        const parsedCategoriesNames = await findAllProductsCategories("json");
-
-        setCategoriesNames(JSON.parse(parsedCategoriesNames as string))
-    }
-
-    fetchCategoriesNames();
-  }, [])
-
-  const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
-    if (event.key === ' ' || event.key === 'Spacebar') {
-      event.preventDefault()
-    }
-  }, [])
-
-  const handleInputKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-    e.stopPropagation();
-  }, []);
-
-  const handleClick = (e: React.MouseEvent) => {
-    preventClosing(e);
-    setIsMainDialogOpen(true);
+  const confirmDeleteAndMove = () => {
+    onDeleteAndMove(newCategoryName)
+    setIsOpen(false)
   }
 
-  const handleMoveProducts = (e: React.MouseEvent) => {
-    preventClosing(e);
-    setIsMainDialogOpen(false);
-    setIsMoveDialogOpen(true);
-  }
-
-  const handleDeleteCategory = (e: React.MouseEvent) => {
-    preventClosing(e);
-    setIsMainDialogOpen(false);
-    setIsDeleteDialogOpen(true);
-  }
-
-  const confirmMoveProducts = async () => {
-    await deleteCategory({ categoryName: props.categoryName, removeProducts: false, categoryToMoveProducts: newCategoryName });
-
-    setIsMoveDialogOpen(false);
-    setIsMainDialogOpen(false);
-  }
-
-  const confirmDeleteCategory = async (e: React.MouseEvent) => {
-    if(confirmationCategoryName == props.categoryName && deleteConfirmation == "DELETE"){
-        await deleteCategory({ categoryName: props.categoryName, removeProducts: true })
-    } 
-
-    setIsDeleteDialogOpen(false);
-    setIsMainDialogOpen(false);
-    setDeleteConfirmation("");
-  }
-
-  const handleCancel = (e: React.MouseEvent) => {
-    preventClosing(e);
-    setIsMainDialogOpen(true);
+  const resetForm = () => {
+    setNewCategory(false)
+    setNewCategoryName("")
+    setConfirmationCategoryName("")
+    setDeleteConfirmation("")
   }
 
   return (
-    <div onClick={(e) => preventClosing(e)} onKeyDown={handleKeyDown} className="w-full h-full">
-        <Dialog open={isMainDialogOpen} onOpenChange={setIsMainDialogOpen}>
-            <DialogTrigger asChild>
-                <span
-                onClick={handleClick}
-                className={cn(
-                    "w-full h-full flex items-center text-red-500 hover:text-red-700 transition-colors duration-200",
-                    props.className
-                )}
-                >
-                <Trash2 className={cn("w-4 h-4 mr-2", props.customStyles ? props.customStyles.marginToIcon : "")}/>
-                Delete
-                </span>
-            </DialogTrigger>
-            <DialogContent className="bg-white sm:max-w-[425px] max-w-[95%] rounded-lg">
-                <DialogHeader>
-                <DialogTitle className="text-2xl font-bold flex items-center text-gray-800">
-                    <AlertTriangle className="w-6 h-6 mr-2 text-yellow-500" />
-                    Delete Category
-                </DialogTitle>
-                <DialogDescription className="text-gray-600 mt-2">
-                    This action cannot be undone. Please choose how to manage the products in this category.
-                </DialogDescription>
-                </DialogHeader>
-                <div className="my-6 space-y-4">
-                <Button
-                    variant="outline"
-                    className="w-full justify-between text-left font-normal hover:bg-gray-100"
-                    onClick={handleMoveProducts}
-                >
-                    <span className="max-[400px]:hidden">Move products to another category</span>
-                    <span className="min-[401px]:hidden">Move to another category</span>
-                    <MoveRight className="w-4 h-4 ml-2" />
-                </Button>
-                <Button
-                    variant="outline"
-                    className="w-full justify-between text-left font-normal hover:bg-gray-100"
-                    onClick={handleDeleteCategory}
-                >
-                    <span className="max-[400px]:hidden">Delete all products in this category</span>
-                    <span className="min-[401px]:hidden">Delete with products</span>
-                    <Trash2 className="w-4 h-4 ml-2" />
-                </Button>
-                </div>
-                <DialogFooter className="sm:flex-row flex-col space-y-2 sm:space-y-0 sm:space-x-2">
-                <Button
-                    variant="outline"
-                    onClick={() => setIsMainDialogOpen(false)}
-                    className="w-full sm:w-auto"
-                >
-                    Cancel
-                </Button>
-                </DialogFooter>
-            </DialogContent>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        setIsOpen(open)
+        if (!open) resetForm()
+      }}
+    >
+      <DialogTrigger asChild>
+        <Button variant="destructive">Delete and Move Products</Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Delete Category and Move Products</DialogTitle>
+        </DialogHeader>
+        <Card className="rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200">
+          <CardHeader className="bg-yellow-50 border-b border-yellow-100">
+            <CardTitle className="text-heading3-bold flex items-center text-yellow-700">
+              <AlertTriangle className="w-6 h-6 mr-2 text-yellow-500" />
+              Delete Category and Move Products
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6 p-6">
+            <Alert>
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Caution</AlertTitle>
+              <AlertDescription>
+                This action will delete the <span className="font-bold">{categoryName}</span> category and move its
+                products to another category.
+              </AlertDescription>
+            </Alert>
 
-            <Dialog open={isMoveDialogOpen} onOpenChange={setIsMoveDialogOpen}>
-                <DialogContent className="bg-white sm:max-w-[425px] max-w-[95%] rounded-lg">
-                <DialogHeader>
-                    <DialogTitle className="text-xl font-bold text-gray-800">Move Products</DialogTitle>
-                    <DialogDescription className="text-gray-600 mt-2">
-                    Enter the name of the category to move the products to.
-                    </DialogDescription>
-                </DialogHeader>
-                <div className="my-4">
-                    {newCategory ? (
-                        <>
-                            <Label htmlFor="newCategory" className="text-sm font-medium text-gray-700">New category name</Label>
-                            <Input
-                             id="newCategory"
-                             value={newCategoryName}
-                             onChange={(e) => setNewCategoryName(e.target.value)}
-                             onKeyDown={handleInputKeyDown}
-                             className="mt-1"
-                             placeholder="Enter category name"
-                            />
-                        </>
-                    ): (
-                        <>
-                            <Label htmlFor="chooseCategory" className="text-sm font-medium text-gray-700">Choose existing category</Label>
-                            <Select        
-                                onValueChange={(value) => {setNewCategoryName(value)}} 
-                            >
-                            <SelectTrigger id="chooseCategory" className="text-small-regular text-gray-700  bg-neutral-100 mt-1 focus-visible:ring-black focus-visible:ring-[1px]">
-                                <SelectValue className="text-small-regular text-gray-700 "></SelectValue>
-                            </SelectTrigger>
-                            <SelectContent onClick={(e) => preventClosing(e)}>
-                            {categoriesNames.map((category, index) => (
-                                <SelectItem key={index} value={category.name}>{category.name}</SelectItem>
-                            ))}
-                            </SelectContent>
-                        </Select>
-                        </>
-                    )}
-
-                    <div className="w-full h-fit flex justify-end">
-                        <Button 
-                         type="button" 
-                         className="text-small-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 py-0 px-0 -mb-3" 
-                         variant="destructive" 
-                         onClick={() => setNewCategory(prev => !prev)}>
-                            {newCategory? "Вибрати існуючу?" : "Створити нову?"}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="text-base-bold mb-4 text-gray-700">Select Destination Category</h3>
+              <div className="space-y-4">
+                {newCategory ? (
+                  <div>
+                    <Label htmlFor="newCategoryName" className="text-base-semibold mb-2 block">
+                      New Category Name
+                    </Label>
+                    <Input
+                      id="newCategoryName"
+                      value={newCategoryName}
+                      onChange={(e) => setNewCategoryName(e.target.value)}
+                      placeholder="Enter new category name"
+                      className="text-base-regular border-gray-300 focus:border-gray-400 rounded-md"
+                    />
+                    {allCategories.map((category) => category.name).includes(newCategoryName) && (
+                      <p className="text-subtle-medium text-yellow-600 mt-1">
+                        Category already exists.{" "}
+                        <Button variant="link" className="p-0" onClick={() => setNewCategory(false)}>
+                          Click here to select instead
                         </Button>
-                    </div>
-                </div>
-                <DialogFooter className="sm:flex-row flex-col space-y-2 sm:space-y-0 sm:space-x-2">
-                    <Button
-                     variant="outline"
-                     onClick={(event) => {setIsMoveDialogOpen(false), handleCancel(event)}}
-                     className="w-full sm:w-auto" 
-                    >
-                    Cancel
-                    </Button>
-                    <Button
-                     onClick={confirmMoveProducts}
-                     className="w-full sm:w-auto"
-                     disabled={!newCategoryName.trim()}
-                    >
-                    Move and Delete
-                    </Button>
-                </DialogFooter>
-                </DialogContent>
-            </Dialog>
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div>
+                    <Label htmlFor="destinationCategory" className="text-base-semibold mb-2 block">
+                      Destination Category
+                    </Label>
+                    <Select value={newCategoryName} onValueChange={setNewCategoryName}>
+                      <SelectTrigger id="destinationCategory" className="text-base-regular">
+                        <SelectValue placeholder="Choose existing category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {allCategories.map((category) => (
+                          <SelectItem key={category.categoryId} value={category.name}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                <Button
+                  onClick={() => {
+                    setNewCategory(!newCategory)
+                    setNewCategoryName("")
+                  }}
+                  variant="outline"
+                  className="text-base-medium w-full"
+                >
+                  {newCategory ? "Choose existing category" : "Create new category"}
+                </Button>
+              </div>
+            </div>
 
-            <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-                <DialogContent className="bg-white sm:max-w-[425px] max-w-[95%] rounded-lg">
-                <DialogHeader>
-                    <DialogTitle className="text-xl font-bold text-gray-800">Confirm Deletion</DialogTitle>
-                    <DialogDescription className="text-gray-600 mt-2">
-                        This will permanently delete <span className="font-bold">{props.categoryName}</span> category and all it&apos;s products. This action can&apos;t be undone.
-                    </DialogDescription>
-                </DialogHeader>
-                <div className="my-4 space-y-4">
-                    <div>
-                    <Label htmlFor="categoryName" className="text-sm font-medium text-gray-700">
-                        Type category name
-                    </Label>
-                    <Input
-                        id="categoryName"
-                        onChange={(e) => setConfirmationcategoryName(e.target.value)}
-                        onKeyDown={handleInputKeyDown}
-                        className="mt-1"
-                    />
-                    </div>
-                    <div>
-                    <Label htmlFor="deleteConfirmation" className="text-sm font-medium text-gray-700">
-                        Type <span className="font-semibold text-red-500">DELETE</span> to confirm
-                    </Label>
-                    <Input
-                        id="deleteConfirmation"
-                        value={deleteConfirmation}
-                        onChange={(e) => setDeleteConfirmation(e.target.value)}
-                        onKeyDown={handleInputKeyDown}
-                        className="mt-1"
-                        placeholder="Type DELETE"
-                    />
-                    </div>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="text-base-bold mb-4 text-gray-700">Confirmation Required</h3>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="categoryName" className="text-base-semibold mb-2 block">
+                    Type category name to confirm
+                  </Label>
+                  <Input
+                    id="categoryName"
+                    value={confirmationCategoryName}
+                    onChange={(e) => setConfirmationCategoryName(e.target.value)}
+                    className="text-base-regular border-gray-300 focus:border-gray-400 rounded-md"
+                    placeholder={categoryName}
+                  />
                 </div>
-                <DialogFooter className="sm:flex-row flex-col space-y-2 sm:space-y-0 sm:space-x-2">
-                    <Button
-                    variant="outline"
-                    onClick={(event) => {setIsDeleteDialogOpen(false), handleCancel(event)}}
-                    className="w-full sm:w-auto"
-                    >
-                    Cancel
-                    </Button>
-                    <Button
-                    variant="destructive"
-                    onClick={(e) => confirmDeleteCategory(e)}
-                    className="w-full sm:w-auto bg-red-500 text-white"
-                    disabled={(deleteConfirmation !== "DELETE" || confirmationCategoryName !== props.categoryName)}
-                    >
-                    Delete Category and Products
-                    </Button>
-                </DialogFooter>
-                </DialogContent>
-            </Dialog>
-        </Dialog>
-    </div>
+                <div>
+                  <Label htmlFor="deleteConfirmation" className="text-base-semibold mb-2 block">
+                    Type <span className="font-semibold text-red-500">delete</span> to confirm
+                  </Label>
+                  <Input
+                    id="deleteConfirmation"
+                    value={deleteConfirmation}
+                    onChange={(e) => setDeleteConfirmation(e.target.value)}
+                    className="text-base-regular border-gray-300 focus:border-gray-400 rounded-md"
+                    placeholder="Type delete"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-4 pt-4 border-t border-gray-200 max-[485px]:flex-col">
+              <Button variant="outline" onClick={handleCancelDelete} className="text-base-medium">
+                Cancel
+              </Button>
+              <Button
+                onClick={confirmDeleteAndMove}
+                className="text-base-medium text-white bg-yellow-500 hover:bg-yellow-600"
+                disabled={
+                  !newCategoryName || confirmationCategoryName !== categoryName || deleteConfirmation !== "delete"
+                }
+              >
+                Delete and Move Products
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </DialogContent>
+    </Dialog>
   )
 }
 
-export default DeleteCategoryButton

@@ -24,11 +24,15 @@ export type ProductType = {
     }[],
     isFetched: boolean,
     likedBy: string[],
-    addedToCart: Date[]
+    addedToCart: Date[],
+    orderedBy: string[]
 }
 
 export type Category = {
-    category: string,
+    category: { 
+        name: string, 
+        _id: string
+    },
     values: {
       totalProducts: number,
       totalValue: number,
@@ -107,4 +111,24 @@ export type Config = {
             products: ConfigPathValue,
         }
     }
+}
+
+export type CreateUrlParams = {
+    _id?: string,
+    id: string | null,
+    name: string | null,
+    isAvailable: boolean,
+    quantity: number,
+    url: string | null,
+    priceToShow: number,
+    price: number,
+    images: (string | null)[],
+    vendor: string | null,
+    description: string | null,
+    params: {
+        name: string | null,
+        value: string | null
+    }[],
+    isFetched: boolean
+    category:string
 }

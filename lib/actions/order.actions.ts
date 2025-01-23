@@ -127,7 +127,7 @@ export async function createOrder({ products, userId, value, name, surname, phon
             const orderedProduct = await Product.findById(product.product);
 
             orderedProduct.quantity = orderedProduct.quantity - product.amount;
-
+            orderedProduct.orderedBy.push(createdOrder._id)
             await orderedProduct.save();
         }
 

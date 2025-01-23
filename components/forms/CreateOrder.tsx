@@ -18,6 +18,7 @@ import { useState, useEffect } from "react";
 import { CheckCircle, Truck, CreditCard, MessageSquare, ShoppingCart, Phone, Package } from "lucide-react";
 import Confetti from 'react-confetti';
 import { trackFacebookEvent } from "@/helpers/pixel";
+import { Store } from "@/constants/store";
 
 type CartProduct = {
   id: string; 
@@ -476,7 +477,7 @@ const CreateOrder = ({ userId, email }: { userId: string; email: string }) => {
                       <div className="flex-grow">
                         <h3 className="text-base-semibold">{item.name}</h3>
                         <p className="text-small-regular text-gray-500">Кількість: {item.quantity}</p>
-                        <p className="text-base-medium">{item.price.toFixed(2)}₴</p>
+                        <p className="text-base-medium">{item.price.toFixed(2)}{Store.currency_sign}</p>
                       </div>
                     </div>
                   ))}
@@ -484,7 +485,7 @@ const CreateOrder = ({ userId, email }: { userId: string; email: string }) => {
                 <div className="p-4 bg-gray-50 border-t border-gray-200">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-base-regular text-gray-600">Підсумок:</span>
-                    <span className="text-base-semibold">{priceToPay}₴</span>
+                    <span className="text-base-semibold">{priceToPay}{Store.currency_sign}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-base-regular text-gray-600">Доставка:</span>
@@ -492,7 +493,7 @@ const CreateOrder = ({ userId, email }: { userId: string; email: string }) => {
                   </div>
                   <div className="mt-4 pt-4 border-t border-gray-200 flex justify-between items-center">
                     <span className="text-body-semibold">Загальна сума:</span>
-                    <span className="text-heading4-medium text-green-600">{priceToPay}₴</span>
+                    <span className="text-heading4-medium text-green-600">{priceToPay}{Store.currency_sign}</span>
                   </div>
                 </div>
               </div>

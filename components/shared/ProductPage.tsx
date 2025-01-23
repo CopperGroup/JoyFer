@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation'
 import { TransitionLink } from '../interface/TransitionLink'
 import AddToCart from './AddToCart'
 import ContentView from '../pixel/ContentView'
+import { Store } from '@/constants/store'
 
 export default function ProductPage({ productJson, colorsJson }: { productJson: string, colorsJson: string }) {
     const product = JSON.parse(productJson);
@@ -35,8 +36,8 @@ export default function ProductPage({ productJson, colorsJson }: { productJson: 
           </div>
 
           <div className="flex items-center space-x-2 sm:space-x-4 flex-wrap">
-            <span className="text-xl sm:text-3xl font-bold text-blue-600">₴{product.priceToShow}</span>
-            <span className="text-lg sm:text-xl text-gray-500 line-through">₴{product.price}</span>
+            <span className="text-xl sm:text-3xl font-bold text-blue-600">{Store.currency_sign}{product.priceToShow}</span>
+            <span className="text-lg sm:text-xl text-gray-500 line-through">{Store.currency_sign}{product.price}</span>
             <Badge variant="destructive">Sale</Badge>
           </div>
           

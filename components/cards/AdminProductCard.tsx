@@ -6,8 +6,10 @@ import { Edit, Trash2, Heart } from 'lucide-react'
 import Link from "next/link"
 import { ReadOnly } from '@/lib/types/types'
 import Badge from '../badges/Badge'
+import { Store } from '@/constants/store'
 
 interface AdminProductCardProps {
+    _id: string,
     id: string
     name: string
     price: number
@@ -22,7 +24,7 @@ const AdminProductCard = ({ props }: { props: ReadOnly<AdminProductCardProps>}) 
     return (
         <article className="w-[100%] h-96 bg-neutral-100 rounded-2xl flex items-center justify-center  mx-auto" >     
             <div className="w-11/12 h-[90%]">
-                <Link href={`/admin/createProduct/list/${props.id}`} prefetch={false}>
+                <Link href={`/admin/createProduct/list/${props._id}`} prefetch={false}>
                     <div className="relative w-full h-56 flex justify-center">
                         <Image src={props.image} width={200} height={200} alt="Product image" className="absolute rounded-2xl max-w-[200px] max-h-[200px]"/>
                         <div className="w-full h-full flex justify-between items-start">
@@ -38,8 +40,8 @@ const AdminProductCard = ({ props }: { props: ReadOnly<AdminProductCardProps>}) 
                 </Link>
                 <div className="flex flex-1 justify-between items-center mt-2">
                     <div>
-                        <p className="text-base-medium text-gray-700 line-through">{props.price != props.priceToShow && '₴' + props.price}</p>
-                        <p className="text-base-semibold">₴{props.priceToShow}</p>
+                        <p className="text-base-medium text-gray-700 line-through">{props.price != props.priceToShow && Store.currency_sign + props.price}</p>
+                        <p className="text-base-semibold">{Store.currency_sign}{props.priceToShow}</p>
                     </div>
                     <div className="flex gap-1 items-center mt-4 mr-2">
                         <Heart className={`size-4 text-red-500 mt-0.5 ${props.likes > 0 ? "fill-red-500" : ""}`}/>

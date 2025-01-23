@@ -48,7 +48,7 @@ export function sleep(ms: number): Promise<void> {
 }
 
 export function replaceDescription(str: string) {
-  return str
+  const decodedStr = str
     .replace(/&amp;lt;/g, '<')
     .replace(/&amp;gt;/g, '>')
     .replace(/&amp;quot;/g, '"')
@@ -68,8 +68,12 @@ export function replaceDescription(str: string) {
     .replace(/&cent;/g, '¢')
     .replace(/&bull;/g, '•')
     .replace(/&hellip;/g, '…')
-    .replace(/&mdash;/g, '—')   
-    .replace(/&ndash;/g, '–');  
+    .replace(/&mdash;/g, '—')
+    .replace(/&ndash;/g, '–');
+  
+  const plainText = decodedStr.replace(/<\/?[^>]+(>|$)/g, '');
+  
+  return plainText.trim();
 }
 
 export function capitalize(word: string) {
@@ -273,4 +277,57 @@ export function removeExtraLeadingCharacters(input: string, char: string): strin
 
   // Ensure only one leading occurrence of the character remains
   return char + input.slice(firstDifferentIndex);
+}
+
+type GetElementDataConfig = {
+  parent: Element;
+  value: string;
+  attributeOf?: string;
+  many?: boolean;
+};
+
+export function getElementData(config: GetElementDataConfig): Element | Element[] | string | string[] | null {
+  const { parent, value, attributeOf, many } = config;
+
+  if (attributeOf) {
+    // If `attributeOf` matches the parent's tag name, fetch the parent's attribute
+    if (attributeOf === parent.tagName) {
+      return parent.getAttribute(value); // Return the attribute value of the parent
+    } else {
+      // Otherwise, fetch child elements based on `attributeOf`
+      const elements = Array.from(parent.getElementsByTagName(attributeOf));
+      if (value === "Content") {
+        if (!many) {
+          return elements[0]?.textContent?.trim() || null; // Single element's textContent
+        }
+        return elements.map((el) => el.textContent?.trim() || "").filter(Boolean); // All matching textContent
+      } else {
+        if (!many) {
+          return elements[0]?.getAttribute(value) || null; // Single element's attribute
+        }
+        return elements.map((el) => el.getAttribute(value)).filter(Boolean) as string[]; // All matching attributes
+      }
+    }
+  } else {
+    // No `attributeOf`, fetch child elements based on `value`
+    const elements = Array.from(parent.getElementsByTagName(value));
+    if (value === "Content") {
+      
+      return parent?.textContent?.trim() || null; // Single element's textContent
+    } else {
+      if (!many) {
+        return elements[0] || null; // Single element
+      }
+      return elements; // All matching elements
+    }
+  }
+}
+
+export function getTopProductsBySales(products: ProductType[], topN = 3) {
+  // Sort products by the length of their orderedBy array (descending)
+  const sortedProducts = products
+    .sort((a, b) => b.orderedBy.length - a.orderedBy.length)
+    .slice(0, topN); // Take the top N products
+  
+  return sortedProducts;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -15,23 +15,25 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn, sleep } from "@/lib/utils";
 import { Edit, Percent, MoveRight, Check, Pencil } from "lucide-react";
-import { setCategoryDiscount, changeProductsCategory, findAllProductsCategories, fetchCategoriesProducts, changeCategoryName } from "@/lib/actions/product.actions";
+import { changeProductsCategory, findAllProductsCategories } from "@/lib/actions/product.actions";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ProductType, ReadOnly } from "@/lib/types/types";
 import ProductsTable from "./ProductsTable";
+import { setCategoryDiscount } from "@/lib/actions/categories.actions";
 
 type OnSelectionChangeProps = 
     | { selectType: "select-one", productId: string }
     | { selectType: "select-all", productIds: string[] }
 
 interface EditCategoryButtonProps {
-  className?: string;
+  _id: string,
   categoryName: string;
   stringifiedProducts: string;
   onDialogChange?: (isOpen: boolean) => void;
   customStyles? : {
     marginToIcon: string
   }
+  className?: string;
 }
 
 const EditCategoryButton = (props: ReadOnly<EditCategoryButtonProps>) => {
@@ -49,6 +51,9 @@ const EditCategoryButton = (props: ReadOnly<EditCategoryButtonProps>) => {
   
   const products = JSON.parse(props.stringifiedProducts)
   
+  const inputRef = useRef<HTMLInputElement>(null);
+  const openButtonRef = useRef(null)
+
   useEffect(() => {
       const fetchCategoriesNames = async () => {
           const parsedCategoriesNames = await findAllProductsCategories("json");
@@ -58,8 +63,8 @@ const EditCategoryButton = (props: ReadOnly<EditCategoryButtonProps>) => {
     }, []);
     
     const preventClosing = (e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
+      e.preventDefault();
+      e.stopPropagation();
     }
     
     const handleSelectionChange = useCallback((props: OnSelectionChangeProps) => {
@@ -101,10 +106,25 @@ const EditCategoryButton = (props: ReadOnly<EditCategoryButtonProps>) => {
     setIsMainDialogOpen(true);
   }
 
-  const handleSetDiscount = (e: React.MouseEvent) => {
+  const handleSetDiscount = async (e: React.MouseEvent) => {
     preventClosing(e);
     setIsMainDialogOpen(false);
     setIsDiscountDialogOpen(true);
+    setTimeout(() => {
+      try {
+        // Blur the currently focused element if applicable
+        if (document.activeElement instanceof HTMLElement) {
+          document.activeElement.blur();
+        }
+  
+        // Focus the input if it exists
+        if (inputRef.current) {
+          inputRef.current.focus();
+        }
+      } catch (err) {
+        console.error("Focus management error:", err);
+      }
+    }, 0); // Delay to ensure modal transition completes
   }
   
   const handleChangeName = (e: React.MouseEvent) => {
@@ -120,7 +140,7 @@ const EditCategoryButton = (props: ReadOnly<EditCategoryButtonProps>) => {
   }
 
   const confirmSetDiscount = async () => {
-    await setCategoryDiscount(props.categoryName, Number(discountPercentage));
+    await setCategoryDiscount(props._id, Number(discountPercentage));
     setIsDiscountDialogOpen(false);
     setIsMainDialogOpen(false);
     setDiscountPercentage(null);
@@ -223,6 +243,7 @@ const EditCategoryButton = (props: ReadOnly<EditCategoryButtonProps>) => {
                 New name
               </Label>
               <Input
+                ref={inputRef}
                 id="changeName"
                 onChange={(e) => setNewCategoryName(e.target.value)}
                 onKeyDown={handleInputKeyDown}
@@ -262,6 +283,7 @@ const EditCategoryButton = (props: ReadOnly<EditCategoryButtonProps>) => {
                 Discount Percentage
               </Label>
               <Input
+                ref={inputRef}
                 id="discountPercentage"
                 value={discountPercentage ? (focused ? discountPercentage :  `${discountPercentage}%`) :''}
                 onChange={(e) => {

@@ -4,6 +4,7 @@ import Badge from "../badges/Badge"
 import Link from "next/link"
 import LikeButton from "../interface/LikeButton"
 import { TransitionLink } from "../interface/TransitionLink"
+import { Store } from "@/constants/store"
 
 interface Props {
     id: string;
@@ -46,8 +47,8 @@ const ProductCard = ({ id, productId, email, priceToShow, price, name, imageUrl,
             </Link>
             <div className="flex flex-1 justify-between items-center mt-2">
                 <div>
-                    <p className="text-base-medium text-gray-700 line-through">{price != priceToShow?'₴' + price:<></>}</p>
-                    <p className="text-base-semibold">₴{priceToShow}</p>
+                    <p className="text-base-medium text-gray-700 line-through">{price != priceToShow? Store.currency_sign + price:<></>}</p>
+                    <p className="text-base-semibold">{Store.currency_sign}{priceToShow}</p>
                 </div>
                 <AddToCart id={id} image={imageUrl} name={name} price={priceToShow} priceWithoutDiscount={price}/>
             </div>

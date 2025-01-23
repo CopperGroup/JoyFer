@@ -1,3 +1,4 @@
+import { Store } from "@/constants/store";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -35,11 +36,11 @@ const OrderedProductCard = ({ id, name, image, priceToShow, model, amount}: Prop
         <div className="mt-4 flex flex-col sm:flex-row justify-between items-start sm:items-end">
           <div className="text-base-regular text-gray-600 mb-2 sm:mb-0">
             <p>Кількість: {amount}</p>
-            <p>Ціна за одиницю: {priceToShow}₴</p>
+            <p>Ціна за одиницю: {priceToShow}{Store.currency_sign}</p>
           </div>
           <div className="text-left sm:text-right">
             <p className="text-body-semibold text-green-600">
-              {(priceToShow * amount).toFixed(2)}₴
+              {(priceToShow * amount).toFixed(2)}{Store.currency_sign}
             </p>
             <p className="text-subtle-medium text-gray-500">Загальна сума</p>
           </div>

@@ -9,7 +9,10 @@ const categorySchema = new mongoose.Schema({
             type: mongoose.Schema.Types.ObjectId,
             ref: "Product"
         }
-    ]
+    ],
+    totalValue: {
+        type: Number
+    }
 })
 
 const Category = mongoose.models.Category || mongoose.model("Category", categorySchema);

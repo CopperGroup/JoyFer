@@ -17,8 +17,8 @@ const DeleteProductButton = ({ id }: { id: string }) => {
 
     const handleDelete = async (id: string) => {
         if(productId === id) {
-            await deleteProduct({productId: id,}, pathname);
-            router.back();
+            await deleteProduct({productId: id,});
+            router.push('/admin/products');
         } else {
             setError("Неправильний ID товару")
         }

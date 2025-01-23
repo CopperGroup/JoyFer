@@ -61,7 +61,7 @@ const productSchema = new mongoose.Schema({
     orderedBy: [
         {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'User'
+            ref: 'Order'
         }
     ],
 

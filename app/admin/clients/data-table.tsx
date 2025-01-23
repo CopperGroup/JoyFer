@@ -41,7 +41,6 @@ import {
 } from "@/components/ui/table"
 import { proceedDataToDB } from "@/lib/proceedDataToDB"
 import Image from "next/image"
-import { findMaxId } from "@/lib/actions/value.actions"
 import { useRouter } from "next/navigation"
 
 export type Product = {
