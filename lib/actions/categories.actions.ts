@@ -9,6 +9,7 @@ import clearCache from "./cache";
 import { clearCatalogCache } from "./redis/catalog.actions";
 import { deleteProduct } from "./product.actions";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 interface FetchCategoriesPropertiesParams {
   page?: number; // Current page
@@ -350,6 +351,7 @@ export async function deleteCategory(props: DeleteCategoryProps) {
         // Clear cache
         await clearCatalogCache();
         clearCache("updateProduct");
+        redirect('/admin/categories')
     } catch (error: any) {
         throw new Error(`Error deleting category: ${error.message}`);
     }
