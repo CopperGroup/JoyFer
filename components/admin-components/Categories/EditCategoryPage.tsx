@@ -175,6 +175,8 @@ export default function EditCategoryPage(props: ReadOnly<CategoryPageProps>) {
       }
     } finally {
       setIsLoading(false)
+      router.refresh()
+      router.push('/admin/categories')
     }
   }
 
@@ -599,7 +601,7 @@ export default function EditCategoryPage(props: ReadOnly<CategoryPageProps>) {
                 <Button
                   onClick={confirmDeleteAndMove}
                   className="text-base-medium text-white bg-yellow-500 hover:bg-yellow-600"
-                  disabled={!newCategoryName || confirmationCategoryName !== categoryName || deleteConfirmation !== "delete" || loading}
+                  disabled={!newCategoryId || confirmationCategoryName !== categoryName || deleteConfirmation !== "delete" || loading}
                 >
                 {loading ? 
                   <>
