@@ -351,12 +351,10 @@ export async function deleteCategory(props: DeleteCategoryProps) {
         // Clear cache
         await clearCatalogCache();
         clearCache("updateProduct");
-        redirect('/admin/categories')
     } catch (error: any) {
         throw new Error(`Error deleting category: ${error.message}`);
     }
 }
-
 export async function fetchCategoriesProducts(categoryId: string, type?: 'json') {
   try {
     // Connect to the database

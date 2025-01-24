@@ -145,10 +145,9 @@ export default function EditCategoryPage(props: ReadOnly<CategoryPageProps>) {
       }
     } finally {
       setIsLoading(false)
+      router.refresh()
+      router.push('/admin/categories')
     }
-      // Redirect or update UI as needed
-
-      router.push("/admin/categories")
   }
 
   const confirmDeleteAndMove = async () => {
@@ -177,8 +176,6 @@ export default function EditCategoryPage(props: ReadOnly<CategoryPageProps>) {
     } finally {
       setIsLoading(false)
     }
-      // Redirect or update UI as needed
-      router.push("/admin/categories")
   }
 
 
