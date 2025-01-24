@@ -85,6 +85,7 @@ export async function updateCategories(
     await Promise.all(categoryOps);
 
     // Clear cache if relevant
+    clearCatalogCache();
     clearCache("updateProduct");
   } catch (error: any) {
     throw new Error(
@@ -319,6 +320,7 @@ export async function createNewCategory({ name, products, previousCategoryId }: 
       products: productIds
     })
 
+    clearCache("updateProduct");
   } catch (error: any) {
     throw new Error(`Error creating new category: ${error.message}`)
   }
