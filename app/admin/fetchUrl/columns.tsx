@@ -74,7 +74,7 @@ export const columns: ColumnDef<Product, unknown>[] = [
   },
   {
     accessorKey: "isAvailable",
-    header: "Додати",
+    header: "Доступний",
     cell: ({ row }) => (
       <div className="capitalize ">{row.getValue("isAvailable") ? "Так" : "Ні"}</div>
     ),
@@ -158,7 +158,7 @@ export const columns: ColumnDef<Product, unknown>[] = [
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           Ціна із знижкою
-          <CaretSortIcon className="ml-2 h-4 w-4" />
+          <CaretSortIcon className="h-4 w-4" />
         </Button>
       )
     },
@@ -171,7 +171,7 @@ export const columns: ColumnDef<Product, unknown>[] = [
         currency: "UAH",
       }).format(quantity)
 
-      return <div className="text-left font-medium text-red-600 pl-2">{formatted}</div>
+      return <div className="text-left font-medium text-red-600 pl-5">{formatted}</div>
     },
   },
   {

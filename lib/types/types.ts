@@ -28,6 +28,13 @@ export type ProductType = {
     orderedBy: string[]
 }
 
+export type CategoryType = {
+    _id: string,
+    name: string,
+    products: string[],
+    totalValue: number
+}
+
 export type Category = {
     category: { 
         name: string, 

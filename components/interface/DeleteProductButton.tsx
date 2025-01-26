@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { Input } from "../ui/input";
 import { deleteProduct } from "@/lib/actions/product.actions";
 
-const DeleteProductButton = ({ id }: { id: string }) => {
+const DeleteProductButton = ({ id, _id }: { id: string, _id: string}) => {
     const [ productId, setProductId ] = useState("");
     const [ error, setError ] = useState("");
     const pathname = usePathname();
@@ -17,7 +17,7 @@ const DeleteProductButton = ({ id }: { id: string }) => {
 
     const handleDelete = async (id: string) => {
         if(productId === id) {
-            await deleteProduct({productId: id,});
+            await deleteProduct({product_id: _id});
             router.push('/admin/products');
         } else {
             setError("Неправильний ID товару")

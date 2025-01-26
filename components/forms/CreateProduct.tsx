@@ -26,6 +26,8 @@ import { useDropzone } from "@uploadthing/react";
 import { generateClientDropzoneAccept } from "uploadthing/client";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
 import { removeAllButOne, removeExtraLeadingCharacters } from "@/lib/utils";
+import { createNewCategory, getCategoriesNamesAndIds, updateCategories } from "@/lib/actions/categories.actions";
+import { Store } from "@/constants/store";
 
 type ProductFormValues = z.infer<typeof ProductValidation>;
 type DiscountType = "percentage" | "digits";
@@ -46,7 +48,7 @@ const CreateProduct = () => {
   const [ inputValue, setInputValue ] = useState("");
   const [ hoveredIndex, setHoveredIndex ] = useState<number | null>(null);
 
-  const [ categories, setCategories ] = useState<{name: string, amount: number}[]>([]);
+  const [ categories, setCategories ] = useState<{ name: string, categoryId: string}[]>([]);
   const [ isNewCategory, setIsNewCategory ] = useState<boolean>(false);
 
   
@@ -145,20 +147,14 @@ const CreateProduct = () => {
       defaultValues: {
         id: "",
         name: "",
-        price: "$0",
-        priceToShow: "$0",
+        price: `${Store.currency_sign}0`,
+        priceToShow: `${Store.currency_sign}0`,
         description: "",
         url: "",
         quantity: "",
         category: "",
         vendor: "",
         isAvailable: true,
-        Model: "",
-        Width: "",
-        Height: "",
-        Depth: "",
-        Type: "",
-        Color: "",
         customParams: []
       }
     });
@@ -173,8 +169,9 @@ const CreateProduct = () => {
 
   const onSubmit = async (values: z.infer<typeof ProductValidation>) => {
     
-    console.log(values.price.slice(1), values.priceToShow.slice(1))
-    await createProduct({
+    console.log(!isNewCategory ? categories.filter(category => category.categoryId === values.category)[0].name : values.category)
+
+    const result = await createProduct({
       id: values.id,
       name: values.name,
       quantity: parseFloat(values.quantity),
@@ -183,22 +180,19 @@ const CreateProduct = () => {
       price: parseFloat(values.price.slice(1)),
       priceToShow: parseFloat(values.priceToShow.slice(1)),
       vendor: values.vendor,
-      category: values.category,
+      category: !isNewCategory ? categories.filter(category => category.categoryId === values.category)[0].name : values.category,
       description: values.description,
       isAvailable: isChecked,
-      params: {
-        Model: values.Model,
-        Width: values.Width,
-        Height: values.Height,
-        Depth: values.Depth,
-        Type: values.Type,
-        Color: values.Color
-      },
+      params: values.customParams || [],
       customParams: values.customParams ? values.customParams : []
-    })
+    }, 'json')
+
+    const createdProduct = JSON.parse(result);
+
+    await updateCategories([createdProduct], "create");
 
     if(isChecked) {
-      router.push(`/catalog/${values.Model}`);
+      router.push(`/catalog/${createdProduct._id}`);
     } else {
       router.push(`/admin/products`);
     }
@@ -207,9 +201,9 @@ const CreateProduct = () => {
   useEffect(() => {
     const fetchProductCategories = async () => {
       try {
-        const categories = await findAllProductsCategories();
+        const categories = await getCategoriesNamesAndIds();
 
-        setCategories(categories as { name: string, amount: number}[]);
+        setCategories(categories);
       } catch (error: any) {
         throw new Error(`Error appending existing product properities: ${error.message}`)
       }
@@ -729,25 +723,35 @@ const CreateProduct = () => {
           <div className="w-full h-fit pl-4 pr-5 py-4 border rounded-2xl">
             <h4 className="w-full text-base-semibold text-[15px] mb-4">Категорія</h4>
               {isNewCategory ? (
-                <FormField
-                control={form.control}
-                name="category"
-                render={({ field }) => (
-                  <FormItem className='w-full'>
-                    <FormLabel className='text-small-medium text-[14px] text-dark-1'>
-                      Назва категоріЇ<span className="text-subtle-medium"> *</span>
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        type='text'
-                        className="text-small-regular text-gray-700 text-[13px] bg-neutral-100 ml-1 focus-visible:ring-black focus-visible:ring-[1px]"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <>
+                  <FormField
+                    control={form.control}
+                    name="category"
+                    render={({ field }) => (
+                      <FormItem className='w-full'>
+                        <FormLabel className='text-small-medium text-[14px] text-dark-1'>
+                          Назва категоріЇ<span className="text-subtle-medium"> *</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            type='text'
+                            className="text-small-regular text-gray-700 text-[13px] bg-neutral-100 ml-1 focus-visible:ring-black focus-visible:ring-[1px]"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  {categories.map((cat) => cat.name).includes(form.getValues('category')) && (
+                    <p className="text-subtle-medium text-yellow-600 mt-1.5 ml-2">
+                      Category already exists.{" "}
+                      <Button variant="link" className="h-fit p-0" onClick={() => {form.setValue('category', (categories.filter(cat => cat.name === form.getValues('category')))[0].categoryId); setIsNewCategory(false)}}>
+                        Click here to select instead
+                      </Button>
+                    </p>
+                  )}
+                </>
               ): (
                 <FormField
                   control={form.control}
@@ -773,7 +777,7 @@ const CreateProduct = () => {
                         </FormControl>
                         <SelectContent>
                           {categories.map((category, index) => (
-                            <SelectItem key={index} value={category.name}>{category.name}</SelectItem>
+                            <SelectItem key={index} value={category.categoryId}>{category.name}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -788,7 +792,7 @@ const CreateProduct = () => {
                  type="button" 
                  className="text-subtle-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 py-0 px-0 -mb-3" 
                  variant="destructive" 
-                 onClick={() => setIsNewCategory(prev => !prev)}>
+                 onClick={() => {setIsNewCategory(prev => !prev), form.setValue('category', '')}}>
                   {isNewCategory ? "Вибрати існуючу?" : "Створити нову?"}
                 </Button>
               </div>
@@ -867,7 +871,7 @@ const CreateProduct = () => {
               </div>
             )}
           </div>
-          <Button type='submit' className='bg-green-500 hover:bg-green-400' onClick={() => console.log(form.getValues())}>
+          <Button type='submit' className='bg-green-500 hover:bg-green-400' disabled={categories.map((cat) => cat.name).includes(form.getValues('category'))}>
             Додати товар
           </Button>
           <div className="w-full flex justify-end">

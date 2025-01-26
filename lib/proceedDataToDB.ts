@@ -1,6 +1,8 @@
 import { revalidatePath } from "next/cache";
 import { createUrlProduct, createUrlProductsMany, deleteProduct, deleteUrlProducts, fetchUrlProducts, updateUrlProduct, updateUrlProductsMany } from "./actions/product.actions";
 import { clearCatalogCache } from "./actions/redis/catalog.actions";
+import { updateCategories } from "./actions/categories.actions";
+import { ProductType } from "./types/types";
 
 interface Product {
     _id: string,
@@ -92,7 +94,7 @@ export async function proceedDataToDB(data: Product[], selectedRowsIds: (string 
 
         // Delete left-over products
         for (const leftOverProduct of leftOverProducts) {
-            await deleteProduct({ productId: leftOverProduct.id as string }, "/catalog", "keep-catalog-cache");
+            await deleteProduct({ productId: leftOverProduct.id as string }, "keep-catalog-cache");
         }
 
         await clearCatalogCache();

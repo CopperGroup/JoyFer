@@ -6,7 +6,7 @@ import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { editProduct, } from "@/lib/actions/product.actions";
+import { editProduct, findProductCategory, } from "@/lib/actions/product.actions";
 import {
   Form,
   FormControl,
@@ -28,19 +28,29 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import DeleteProductButton from "../interface/DeleteProductButton";
 import CopyButton from "../interface/CopyButton";
 import { removeAllButOne, removeExtraLeadingCharacters } from "@/lib/utils";
+import { getCategoriesNamesAndIds, updateCategories } from "@/lib/actions/categories.actions";
+import { Store } from "@/constants/store";
+import { CategoryType, ProductType } from "@/lib/types/types";
 
-type ProductFormValues = z.infer<typeof ProductValidation>;
 type DiscountType = "percentage" | "digits";
 type UploadingState = "initial" | "uploading" | "success" | "error";
+type Category = {
+  name: string;
+  categoryId: string
+}
 
-const EditProduct = ({ productProperities }: { productProperities: string}) => {
+const EditProduct = ({ stringifiedProduct, categories, stringifiedCategory }: { stringifiedProduct: string, categories: Category[], stringifiedCategory: string }) => {
+  const product: ProductType = JSON.parse(stringifiedProduct);
+  const productCategory: CategoryType = JSON.parse(stringifiedCategory)
+  console.log(product.priceToShow !== product.price ? 1 - (product.priceToShow / product.price) : 0)
+
   const [ discountPrice, setDiscountPrice ] = useState<string>("");
-  const [ discountPercentage, setDiscountPercentage ] = useState<number>(0);
+  const [ discountPercentage, setDiscountPercentage ] = useState<number>((product.priceToShow !== product.price ? parseFloat(((1 - (product.priceToShow / product.price)) * 100).toFixed(0)) : 0 )|| 0);
   const [ focused, setFocused ] = useState(false);
   const [ discountType, setDiscountType ] = useState<DiscountType>("percentage");
   const [ noDiscount, setNoDiscount ] = useState<boolean>(false); 
 
-  const [ images, setImages ] = useState<string[]>([]);
+  const [ images, setImages ] = useState<string[]>(product.images || []);
   const [ files, setFiles ] = useState<File[]>([]);
   const [ uploadProgress, setUploadProgress ] = useState<number>(0);
   const [ uploadingState, setUploadingState ] = useState<UploadingState>("initial");
@@ -48,19 +58,9 @@ const EditProduct = ({ productProperities }: { productProperities: string}) => {
   const [ inputValue, setInputValue ] = useState("");
   const [ hoveredIndex, setHoveredIndex ] = useState<number | null>(null);
 
-  const [ categories, setCategories ] = useState<{name: string, amount: number}[]>([]);
   const [ isNewCategory, setIsNewCategory ] = useState<boolean>(false);
 
-  const [ params ] = useState([
-    { name: "Model"},
-    { name: "Width"},
-    { name: "Height"},
-    { name: "Depth"},
-    { name: "Type"},
-    { name: "Color"},
-  ])
-  const paramsNamesUa = ['Назва', 'Ширина', 'Висота', 'Глибина', 'Вид', 'Колір'];
-
+  console.log(product)
   const handleMouseEnter = (index: number) => {
     setHoveredIndex(index);
   };
@@ -143,29 +143,25 @@ const EditProduct = ({ productProperities }: { productProperities: string}) => {
   const form = useForm<z.infer<typeof ProductValidation>>({
     resolver: zodResolver(ProductValidation),
     defaultValues: {
-      id: "",
-      name: "",
-      price: "$0",
-      priceToShow: "$0",
-      description: "",
-      url: "",
-      quantity: "",
-      category: "",
-      vendor: "",
-      isAvailable: true,
-      Model: "",
-      Width: "",
-      Height: "",
-      Depth: "",
-      Type: "",
-      Color: "",
-      customParams: []
+      id: product.id,
+      name: product.name,
+      price: `${Store.currency_sign}${product.price}`,
+      priceToShow: `${Store.currency_sign}${product.priceToShow}`,
+      description: product.description,
+      url: product.url,
+      quantity: product.quantity.toString(),
+      category: isNewCategory ? productCategory.name : productCategory._id,
+      vendor: product.vendor,
+      isAvailable: product.isAvailable,
+      customParams: product.params
     }
   });
 
   const onSubmit = async (values: z.infer<typeof ProductValidation>) => {
 
-    await editProduct({
+    console.log(values)
+    const result = await editProduct({
+      _id: product._id,
       id: values.id,
       name: values.name,
       quantity: parseFloat(values.quantity),
@@ -174,20 +170,17 @@ const EditProduct = ({ productProperities }: { productProperities: string}) => {
       price: parseFloat(values.price.slice(1)),
       priceToShow: parseFloat(values.priceToShow.slice(1)),
       vendor: values.vendor,
-      category: values.category,
+      //category: "",
+      category: !isNewCategory ? categories.filter(category => category.categoryId === values.category)[0].name : values.category,
       description: values.description,
       isAvailable: values.isAvailable as boolean,
-      params: {
-        Model: values.Model,
-        Width: values.Width,
-        Height: values.Height,
-        Depth: values.Depth,
-        Type: values.Type,
-        Color: values.Color
-      },
-      customParams: values.customParams
-    })
+      params: values.customParams || [],
+      customParams: values.customParams // FIXXXXXXXXXXXX FIXXXXXXXXXXXX FIXXXXXXXXXX
+    }, "json")
 
+    const editedProduct = JSON.parse(result);
+
+    await updateCategories([editedProduct], "update");
     router.back()
   }
   
@@ -205,47 +198,47 @@ const EditProduct = ({ productProperities }: { productProperities: string}) => {
     }
   }
 
-  useEffect(() => {
-    const fetchProductProperities = () => {
-        try {
-            const { properities: parsedProductProperities, params: fetchedParams, categories } = JSON.parse(productProperities as string)
+  // useEffect(() => {
+  //   const fetchProductProperities = () => {
+  //       try {
+  //           const { properities: parsedProductProperities, params: fetchedParams, } = JSON.parse(productProperities as string)
 
-            parsedProductProperities.forEach(({ name, value }: { name: string, value: string | string[]}) => {
-              form.setValue(name as keyof ProductFormValues, value as string)
+  //           parsedProductProperities.forEach(({ name, value }: { name: string, value: string | string[]}) => {
+  //             form.setValue(name as keyof ProductFormValues, value as string)
 
-              if(name === "price") {
-                form.setValue("price", `₴${value}`)
-              }
-              if(name === "priceToShow") {
-                form.setValue("priceToShow", `₴${value}`)
-              }
-              if(name === "images") {
-                setImages(value as string[])
-              }
-            })
+  //             if(name === "price") {
+  //               form.setValue("price", `${Store.currency_sign}${value}`)
+  //             }
+  //             if(name === "priceToShow") {
+  //               form.setValue("priceToShow", `${Store.currency_sign}${value}`)
+  //             }
+  //             if(name === "images") {
+  //               setImages(value as string[])
+  //             }
+  //           })
             
-            setCategories(categories);
+  //           setCategories(categories);
 
-            remove();
+  //           remove();
 
-            fetchedParams.forEach(({ name, value }: { name: string, value: string }) => {
-                const valueName = mapFieldName(name);
+  //           fetchedParams.forEach(({ name, value }: { name: string, value: string }) => {
+  //               const valueName = mapFieldName(name);
 
-                if (params.some((param) => param.name === valueName)) {
-                    form.setValue(valueName as keyof ProductFormValues, value);
-                } else {
-                    append({ name, value });
-                }
-            });
+  //               if (params.some((param) => param.name === valueName)) {
+  //                   form.setValue(valueName as keyof ProductFormValues, value);
+  //               } else {
+  //                   append({ name, value });
+  //               }
+  //           });
 
-            //console.log("Category", form.getValues("category"));
-          } catch (error: any) {
-            throw new Error(`Error appending existing product properities: ${error.message}`)
-          }
-        }
+  //           //console.log("Category", form.getValues("category"));
+  //         } catch (error: any) {
+  //           throw new Error(`Error appending existing product properities: ${error.message}`)
+  //         }
+  //       }
         
-        fetchProductProperities();
-  }, [productProperities])
+  //       fetchProductProperities();
+  // }, [productProperities])
 
   const addCustomParam = () => {
     append({ name: "", value: "" });
@@ -567,8 +560,8 @@ const EditProduct = ({ productProperities }: { productProperities: string}) => {
                             if(isNaN(discount)) {
                               discount = 0
                             }
-                            form.setValue("price", `₴${rawValue}`);
-                            form.setValue("priceToShow", `₴${discount.toFixed(2)}`)
+                            form.setValue("price", `${Store.currency_sign}${rawValue}`);
+                            form.setValue("priceToShow", `${Store.currency_sign}${discount.toFixed(2)}`)
                             setDiscountPrice(discount.toFixed(2))
                           }}
                         />
@@ -607,7 +600,7 @@ const EditProduct = ({ productProperities }: { productProperities: string}) => {
                                 const discountValue = p - (numericValue / 100) * p;
                                 console.log("D", discountValue);
                             
-                                form.setValue("priceToShow", `₴${discountValue.toFixed(2)}`);
+                                form.setValue("priceToShow", `${Store.currency_sign}${discountValue.toFixed(2)}`);
                                 setDiscountPrice(discountValue.toFixed(2))
                               } else {
                                 console.error("Invalid price format.");
@@ -660,7 +653,7 @@ const EditProduct = ({ productProperities }: { productProperities: string}) => {
                                     rawValue = 0;
                                   }
                                   
-                                  form.setValue("priceToShow", `₴${rawInput}`);
+                                  form.setValue("priceToShow", `${Store.currency_sign}${rawInput}`);
                                   setDiscountPrice(rawValue.toFixed(2));
                                   
                                   let percentage = 0;
@@ -756,19 +749,29 @@ const EditProduct = ({ productProperities }: { productProperities: string}) => {
                 control={form.control}
                 name="category"
                 render={({ field }) => (
-                  <FormItem className='w-full'>
-                    <FormLabel className='text-small-medium text-[14px] text-dark-1'>
-                      Назва категоріЇ<span className="text-subtle-medium"> *</span>
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        type='text'
-                        className="text-small-regular text-gray-700 text-[13px] bg-neutral-100 ml-1 focus-visible:ring-black focus-visible:ring-[1px]"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                  <>
+                    <FormItem className='w-full'>
+                      <FormLabel className='text-small-medium text-[14px] text-dark-1'>
+                        Назва категоріЇ<span className="text-subtle-medium"> *</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type='text'
+                          className="text-small-regular text-gray-700 text-[13px] bg-neutral-100 ml-1 focus-visible:ring-black focus-visible:ring-[1px]"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                    {categories.map((cat) => cat.name).includes(form.getValues('category')) && (
+                      <p className="text-subtle-medium text-yellow-600 mt-1.5 ml-2">
+                        Category already exists.{" "}
+                        <Button variant="link" className="h-fit p-0" onClick={() => {form.setValue('category', (categories.filter(cat => cat.name === form.getValues('category')))[0].categoryId); setIsNewCategory(false)}}>
+                          Click here to select instead
+                        </Button>
+                      </p>
+                    )}
+                  </>
                 )}
               />
               ): (
@@ -796,7 +799,7 @@ const EditProduct = ({ productProperities }: { productProperities: string}) => {
                         </FormControl>
                         <SelectContent>
                           {categories.map((category, index) => (
-                            <SelectItem key={index} value={category.name}>{category.name}</SelectItem>
+                            <SelectItem key={index} value={category.categoryId}>{category.name}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -807,42 +810,18 @@ const EditProduct = ({ productProperities }: { productProperities: string}) => {
               )}
 
               <div className="w-full flex justify-end mt-2">
-                <Button type="button" className="text-subtle-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 py-0 px-0 -mb-3" variant="destructive" onClick={() => setIsNewCategory(prev => !prev)}>{isNewCategory ? "Вибрати існуючу?" : "Створити нову?"}</Button>
+                <Button 
+                  type="button" 
+                  className="text-subtle-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 py-0 px-0 -mb-3" 
+                  variant="destructive" 
+                  onClick={() => {setIsNewCategory(prev => !prev); form.setValue('category', '')}}>{isNewCategory ? "Вибрати існуючу?" : "Створити нову?"}
+                </Button>
               </div>
           </div>
 
           <div className="w-full h-fit pl-4 pr-5 py-4 border rounded-2xl">
             <h4 className="w-full text-base-semibold text-[15px] mb-4">Параметри</h4>
             <div className="w-full grid grid-cols-2 gap-3 max-[425px]:grid-cols-1">
-              {params.map((param,index) => (
-                <FormField
-                  key={param.name}
-                  control={form.control}
-                  name={param.name as keyof ProductFormValues}
-                  render={({ field }) => (
-                      <FormItem className='w-full'>
-                          <FormLabel className='text-small-medium text-[14px] text-dark-1'>
-                              {paramsNamesUa[index]} {['Ширина', 'Висота', 'Глибина'].includes(paramsNamesUa[index]) && (<span className="text-subtle-medium">(см)</span>)}<span className="text-subtle-medium"> *</span>
-                          </FormLabel>
-                          <FormControl>
-                              <Input
-                                  type='text'
-                                  className='text-small-regular text-gray-700 text-[13px] bg-neutral-100 ml-1 focus-visible:ring-black focus-visible:ring-[1px]'
-                                  value={
-                                    paramsNamesUa[index] === "Назва" && typeof field.value === "string"
-                                      ? field.value.replace(/_/g, " ")
-                                      : field.value as string
-                                  }
-                                  onChange={field.onChange}
-                                  onBlur={field.onBlur}
-                                  ref={field.ref}
-                              />
-                          </FormControl>
-                          <FormMessage />
-                      </FormItem>
-                  )}
-                />
-              ))}
               {fields.map((field, index) => (
                         <FormItem key={field.id} className='w-full'>
                           <div className="relative w-full flex justify-end">
@@ -885,10 +864,10 @@ const EditProduct = ({ productProperities }: { productProperities: string}) => {
             )}
           </div>
           <div className="w-full flex gap-1">
-            <Button type='submit' className='w-full bg-green-500 hover:bg-green-400' size="sm">
+            <Button type='submit' className='w-full bg-green-500 hover:bg-green-400' size="sm" disabled={categories.map((cat) => cat.name).includes(form.getValues('category'))}>
               Зберегти зміни
             </Button>
-            <DeleteProductButton id={form.getValues("id")}/>
+            <DeleteProductButton id={product.id} _id={product._id}/>
           </div>
           <div className="w-full flex justify-end">
             <FormField

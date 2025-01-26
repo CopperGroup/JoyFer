@@ -94,7 +94,7 @@ export default function EditCategoryPage(props: ReadOnly<CategoryPageProps>) {
           await moveProductsToCategory({
             initialCategoryId: props._id,
             targetCategoryId: newCategoryId,
-            productIds: products.map((p) => p._id),
+            productIds: products.filter((product) => Array.from(selectedProducts).includes(product._id)).map(p => p._id),
           })
         }
       } else {

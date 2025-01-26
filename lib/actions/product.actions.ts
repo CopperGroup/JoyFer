@@ -5,7 +5,7 @@ import { connectToDB } from "../mongoose"
 import User from "../models/user.model";
 import { revalidatePath } from "next/cache";
 import Value from "../models/value.model";
-import { CreateUrlParams, ProductType } from "../types/types";
+import { CategoryType, CreateUrlParams, ProductType } from "../types/types";
 import { clearCatalogCache } from "./redis/catalog.actions";
 import Order from "../models/order.model";
 import clearCache from "./cache";
@@ -14,6 +14,7 @@ import { updateCategories } from "./categories.actions";
 import { ObjectId } from "mongoose";
 
 interface CreateParams {
+    _id?: string,
     id: string,
     name: string,
     quantity: number,
@@ -26,13 +27,9 @@ interface CreateParams {
     description: string,
     isAvailable: boolean,
     params: {
-        Model: string,
-        Width: string,
-        Height: string,
-        Depth: string,
-        Type: string,
-        Color: string,
-    },
+        name: string,
+        value: string
+    }[],
     customParams?: {
         name: string,
         value:string,
@@ -102,17 +99,23 @@ export async function updateUrlProductsMany(products: Partial<CreateUrlParams>[]
 
         await Product.bulkWrite(bulkOperations);
 
+        const updatedProducts = await Product.find({ _id: { $in: products.map(product => product._id)}});
+        
+        await updateCategories(updatedProducts, "update")
         clearCache("createProduct");
     } catch (error: any) {
         throw new Error(`Error updating url-products in bulk, ${error.message}`);
     }
 }
 
-export async function createProduct({ id, name, quantity, images, url, priceToShow, price, vendor, category, description, isAvailable, params, customParams }: CreateParams){
+export async function createProduct(params: CreateParams): Promise<ProductType>;
+export async function createProduct(params: CreateParams, type: "json"): Promise<string>;
+
+export async function createProduct({ id, name, quantity, images, url, priceToShow, price, vendor, category, description, isAvailable, params, customParams }: CreateParams, type?: "json"): Promise<ProductType | string>{
     try {
         connectToDB();
         
-        await Product.create({
+        const createdProduct = await Product.create({
             id: id,
             name: name,
             images: images,
@@ -124,17 +127,15 @@ export async function createProduct({ id, name, quantity, images, url, priceToSh
             vendor: vendor,
             description: description,
             isAvailable: isAvailable,
-            params: [
-               { name: "Товар", value: params.Model.replace(/ /g, '_') },
-               { name: "Ширина, см", value: parseFloat(params.Width).toFixed(2).toString() },
-               { name: "Висота, см", value: parseFloat(params.Height).toFixed(2).toString() },
-               { name: "Глибина, см", value: parseFloat(params.Depth).toFixed(2).toString() },
-               { name: "Вид", value: params.Type },
-               { name: "Колір", value: params.Color },
-            ],
+            // params: [
+            //    { name: "Товар", value: params.Model.replace(/ /g, '_') },
+            //    { name: "Ширина, см", value: parseFloat(params.Width).toFixed(2).toString() },
+            //    { name: "Висота, см", value: parseFloat(params.Height).toFixed(2).toString() },
+            //    { name: "Глибина, см", value: parseFloat(params.Depth).toFixed(2).toString() },
+            //    { name: "Вид", value: params.Type },
+            //    { name: "Колір", value: params.Color },
+            // ],
         })
-        
-        const createdProduct = await Product.findOne({ id: id });
 
         if(customParams){
             for(const customParam of customParams){
@@ -146,7 +147,14 @@ export async function createProduct({ id, name, quantity, images, url, priceToSh
 
         await clearCatalogCache();
 
-        clearCache("createProduct")
+        clearCache("createProduct");
+        clearCache("createProduct");
+
+        if(type === "json") {
+            return JSON.stringify(createdProduct)
+        } else {
+            return createdProduct;
+        }
     } catch (error: any) {
         throw new Error(`Error creating new product, ${error.message}`)
     }
@@ -173,6 +181,8 @@ export async function updateUrlProduct({_id, id, name, isAvailable, quantity, ur
         })
         
         clearCache("updateProduct")
+
+        
         //console.log(product);
     } catch (error: any) {
         throw new Error(`Error creating url-product, ${error.message}`)
@@ -236,6 +246,25 @@ export async function fetchProducts(){
     }
 }
 
+export async function fetchProductById(_id: string): Promise<ProductType>;
+export async function fetchProductById(_id: string, type: "json"): Promise<string>;
+
+export async function fetchProductById( _id: string, type?: "json") {
+    try {
+        const product = await Product.findById(_id);
+
+        if(!product) {
+            throw new Error(`Product not found`);
+        }
+        if(type === "json") {
+            return JSON.stringify(product);
+        } else {
+            return product;
+        }
+    } catch (error: any) {
+        throw new Error(`Error fetching product by _id: ${error.message}`)
+    }
+}
 export async function fetchLastProducts() {
     try {
         connectToDB();
@@ -337,6 +366,7 @@ export async function getProductsProperities(productId: string, type?: "json") {
         if(type === "json") {
             return JSON.stringify({
             properities: [
+                { name: "_id", value: product._id},
                 { name: "id", value: product.id }, 
                 { name: "name", value: product.name }, 
                 { name: "price", value: product.price.toString() }, 
@@ -376,43 +406,58 @@ export async function getProductsProperities(productId: string, type?: "json") {
     }
 }
 
-export async function editProduct({ id, name, quantity, images, url, priceToShow, price, vendor, category, description, isAvailable, params, customParams }: CreateParams){
+
+export async function editProduct(params: CreateParams): Promise<ProductType>;
+export async function editProduct(params: CreateParams, type: "json"): Promise<string>;
+
+export async function editProduct({_id, id, name, quantity, images, url, priceToShow, price, vendor, category, description, isAvailable, params, customParams }: CreateParams, type?: 'json'){
     try {
         connectToDB();
         
-        const createdProduct = await Product.findOne({ id: id })
+        const editedProduct = await Product.findById(_id)
 
-        createdProduct.name = name;
-        createdProduct.quantity = quantity;
-        createdProduct.images = images;
-        createdProduct.url = url;
-        createdProduct.priceToShow = priceToShow;
-        createdProduct.price = price;
-        createdProduct.vendor = vendor;
-        createdProduct.category = category ? category : "";
-        createdProduct.description = description;
-        createdProduct.isAvailable = isAvailable;
+        if(!editedProduct) {
+            throw new Error(`No product, nothing to edit`)
+        }
 
-        createdProduct.params = [];
+        editedProduct.name = name;
+        editedProduct.quantity = quantity;
+        editedProduct.images = images;
+        editedProduct.url = url;
+        editedProduct.priceToShow = priceToShow;
+        editedProduct.price = price;
+        editedProduct.vendor = vendor;
+        editedProduct.category = category ? category : "";
+        editedProduct.description = description;
+        editedProduct.isAvailable = isAvailable;
+
+        editedProduct.params = [];
         
-        createdProduct.params.push({ name: "Товар", value: params.Model.replace(/ /g, '_') });
-        createdProduct.params.push({ name: "Ширина, см", value: parseFloat(params.Width).toFixed(2).toString() });
-        createdProduct.params.push({ name: "Висота, см", value: parseFloat(params.Height).toFixed(2).toString() });
-        createdProduct.params.push({ name: "Глибина, см", value: parseFloat(params.Depth).toFixed(2).toString() });
-        createdProduct.params.push({ name: "Вид", value: params.Type });
-        createdProduct.params.push({ name: "Колір", value: params.Color });
+        // editedProduct.params.push({ name: "Товар", value: params.Model.replace(/ /g, '_') });
+        // editedProduct.params.push({ name: "Ширина, см", value: parseFloat(params.Width).toFixed(2).toString() });
+        // editedProduct.params.push({ name: "Висота, см", value: parseFloat(params.Height).toFixed(2).toString() });
+        // editedProduct.params.push({ name: "Глибина, см", value: parseFloat(params.Depth).toFixed(2).toString() });
+        // editedProduct.params.push({ name: "Вид", value: params.Type });
+        // editedProduct.params.push({ name: "Колір", value: params.Color });
 
         if(customParams){
             for(const customParam of customParams){
-                createdProduct.params.push({ name: customParam.name, value: customParam.value });
+                editedProduct.params.push({ name: customParam.name, value: customParam.value });
             }
         }
 
-        await createdProduct.save();
+        await editedProduct.save();
 
         await clearCatalogCache();
 
         clearCache("updateProduct")
+
+        
+        if(type === "json") {
+            return JSON.stringify(editedProduct)
+        } else {
+            return editedProduct;
+        }
     } catch (error: any) {
         throw new Error(`Error creating url-product, ${error.message}`)
     }
@@ -527,6 +572,7 @@ export async function deleteProduct(id: { productId: string} | {product_id: stri
   try {
     connectToDB();
 
+    console.log("Deleting")
     if(id){
         const productId = "productId" in id ? id.productId : id.product_id;
         const searchParam = "productId" in id ? "id" : "_id";
@@ -539,7 +585,7 @@ export async function deleteProduct(id: { productId: string} | {product_id: stri
             product = await Product.findOne({ _id: productId });
         }
 
-        //console.log("Product", product);
+        // console.log("Product", product);
     
         if(product){
             
@@ -558,6 +604,8 @@ export async function deleteProduct(id: { productId: string} | {product_id: stri
                     await user.save();
                 }
             }
+
+            await updateCategories([product], "delete")
         
             const orders = await Order.find({ 'products.product': product._id })
 
@@ -572,9 +620,6 @@ export async function deleteProduct(id: { productId: string} | {product_id: stri
                 await order.save();
             }
 
-            const categories = await Category.find({ products: product._id })
-
-            console.log(categories[0].products)
             // for(let category of categories) {
 
             //     console.log("Category products: ", category.products);
@@ -584,9 +629,6 @@ export async function deleteProduct(id: { productId: string} | {product_id: stri
             //     await category.save()
             // }
 
-            await updateCategories([product], "delete")
-
-            console.log(categories[0].products)
             if(searchParam === "id") {
                 await Product.deleteOne({ id: productId });
             } else if(searchParam === "_id") {
@@ -605,4 +647,32 @@ export async function deleteProduct(id: { productId: string} | {product_id: stri
   } catch (error: any) {
     throw new Error(`Error deleting product: ${id} ${error.message}`)
   }
+}
+
+export async function findProductCategory(product: ProductType): Promise<CategoryType>;
+export async function findProductCategory(product: ProductType, type: "json"): Promise<string>;
+
+export async function findProductCategory(product: ProductType, type?: "json"): Promise<CategoryType | string> {
+    try {
+        const categories = await Category.find({ name: product.category });
+
+        let category = { _id: "", name: "", products: [], totalValue: 0 };
+
+        if (categories.length !== 0) {
+            for (const cat of categories) {
+                if (cat.products.includes(product._id)) {
+                    category = cat;
+                    break;
+                }
+            }
+        }
+
+        if (type === "json") {
+            return JSON.stringify(category);
+        } else {
+            return category;
+        }
+    } catch (error: any) {
+        throw new Error(`Error finding product's category: ${error.message}`);
+    }
 }

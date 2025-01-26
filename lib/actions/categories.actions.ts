@@ -24,49 +24,89 @@ export async function updateCategories(
   try {
     connectToDB();
 
+    // console.log("Updating category")
     // Fetch all existing categories
     const existingCategories = await Category.find();
     const categoryMap = new Map(
       existingCategories.map((cat) => [cat.name, cat])
     );
 
-    // Process products and categorize them
-    const updatedCategories: Record<
+    // To track changes for recalculation
+    const categoriesToUpdate: Record<
       string,
       { productIds: string[]; totalValue: number }
     > = {};
 
     for (const product of products) {
-      const categoryName = product.category;
-      const price = product.priceToShow || 0;
+      const newCategoryName = product.category; // Updated category
 
-      // Initialize the category in the updated map if not already present
-      if (!updatedCategories[categoryName]) {
-        const existingCategory = categoryMap.get(categoryName);
-        updatedCategories[categoryName] = {
+      // 1. Check all categories to remove the product from old ones
+      for (const [categoryName, category] of categoryMap.entries()) {
+        if (category.products.includes(product._id)) {
+          if (categoryName !== newCategoryName || productOperation === "delete") {
+            // Remove product from the old category
+            category.products = category.products.filter(
+              (id: string) => id.toString() !== product._id.toString()
+            );
+
+              const remainingProducts = await Product.find({
+                _id: { $in: category.products },
+              });
+
+              console.log("Suma", remainingProducts.reduce(
+                (sum, prod) => sum + (prod.priceToShow || 0),
+                0
+              ))
+              category.totalValue = remainingProducts.reduce(
+                (sum, prod) => sum + (prod.priceToShow || 0),
+                0
+              );
+
+              // console.log(category.totalValue)
+            // Track the changes for this category
+            categoriesToUpdate[categoryName] = {
+              productIds: category.products,
+              totalValue: category.totalValue,
+            };
+          }
+        }
+      }
+
+      // 2. Add the product to the new category
+      if (!categoriesToUpdate[newCategoryName]) {
+        const existingCategory = categoryMap.get(newCategoryName);
+        categoriesToUpdate[newCategoryName] = {
           productIds: existingCategory ? [...existingCategory.products] : [],
           totalValue: existingCategory ? existingCategory.totalValue : 0,
         };
       }
 
-      // Perform operations based on the type
-      const category = updatedCategories[categoryName];
+      const newCategory = categoriesToUpdate[newCategoryName];
       if (productOperation === "create" || productOperation === "update") {
-        if (!category.productIds.includes(product._id)) {
-          category.productIds.push(product._id);
-          category.totalValue += price;
-        }
-      } else if (productOperation === "delete") {
-        const index = category.productIds.indexOf(product._id);
-        if (index !== -1) {
-          category.productIds.splice(index, 1);
-          category.totalValue -= price;
+        if (!newCategory.productIds.includes(product._id)) {
+          newCategory.productIds.push(product._id);
+
+          // Recalculate totalValue for this category
+          const categoryProducts = await Product.find({
+            _id: { $in: newCategory.productIds },
+          });
+          newCategory.totalValue = categoryProducts.reduce(
+            (sum, prod) => sum + (prod.priceToShow || 0),
+            0
+          );
         }
       }
     }
 
-    // Prepare data for database operations
-    const categoryOps = Object.entries(updatedCategories).map(
+    for (const categoryName in categoriesToUpdate) {
+      const category = categoriesToUpdate[categoryName];
+      category.productIds = Array.from(
+        new Set(category.productIds.map((id) => id.toString()))
+      );
+    }
+
+    // 3. Perform database updates
+    const categoryOps = Object.entries(categoriesToUpdate).map(
       async ([name, { productIds, totalValue }]) => {
         if (categoryMap.has(name)) {
           // Update existing category
@@ -75,13 +115,12 @@ export async function updateCategories(
             { products: productIds, totalValue }
           );
         } else if (productOperation === "create" || productOperation === "update") {
-          // Create new category
+          // Create a new category
           await Category.create({ name, products: productIds, totalValue });
         }
       }
     );
 
-    // Execute database operations
     await Promise.all(categoryOps);
 
     // Clear cache if relevant
@@ -93,6 +132,8 @@ export async function updateCategories(
     );
   }
 }
+
+
 
 export async function fetchCategoriesProperties() {
   try {
@@ -114,7 +155,7 @@ export async function fetchCategoriesProperties() {
         totalProducts > 0 ? parseFloat((totalValue / totalProducts).toFixed(2)) : 0;
 
       return {
-        category: {name: category.name, _id: category._id},
+        category: {name: category.name, _id: category._id.toString()},
         values: {
           totalProducts,
           totalValue,
@@ -195,10 +236,13 @@ export async function setCategoryDiscount({categoryId, percentage}: {categoryId:
       const priceWithDiscount = product.price - product.price * (percentage / 100);
       product.priceToShow = priceWithDiscount;
 
-      await product.save();
       totalValue += priceWithDiscount
+      await product.save();
     }
 
+    category.totalValue = totalValue;
+
+    await category.save();
     // Clear the cache after updating product prices
     await clearCatalogCache();
     clearCache("updateProduct");
@@ -249,7 +293,7 @@ export async function moveProductsToCategory({
   try {
     connectToDB();
 
-    const initialCategory = await Category.findById(initialCategoryId);
+    const initialCategory = await Category.findById(initialCategoryId).populate("products");
     if (!initialCategory) {
       throw new Error(`Initial category with ID ${initialCategoryId} not found`);
     }
@@ -264,12 +308,19 @@ export async function moveProductsToCategory({
       { $set: { category: targetCategory.name } }
     );
 
+    targetCategory.products.push(...productIds);
+    targetCategory.totalValue = initialCategory.products.filter(
+      (product: ProductType) => productIds.includes(product._id.toString())
+    ).reduce((sum: number, product: ProductType) => sum + (product.priceToShow || 0), 0)
+
     initialCategory.products = initialCategory.products.filter(
-      (productId: string) => !productIds.includes(productId.toString())
+      (product: ProductType) => !productIds.includes(product._id.toString())
     );
+
+    initialCategory.totalValue = initialCategory.products.reduce((sum: number, product: ProductType) => sum + (product.priceToShow || 0), 0)
+
     await initialCategory.save();
 
-    targetCategory.products.push(...productIds);
     await targetCategory.save();
 
     await clearCatalogCache();
@@ -286,7 +337,7 @@ export async function getCategoriesNamesAndIds(): Promise<{ name: string; catego
 
     const categories = await Category.find();
 
-    const categoriesNamesAndIdsArray = categories.map(category => ({ name: category.name, categoryId: category._id}))
+    const categoriesNamesAndIdsArray = categories.map(category => ({ name: category.name, categoryId: category._id.toString()}))
 
     return categoriesNamesAndIdsArray
   } catch (error: any) {
@@ -312,7 +363,7 @@ export async function createNewCategory({ name, products, previousCategoryId }: 
       revalidatePath(`/admin/categories/edit/${previousCategoryId}`)
     }
 
-    const totalValue = products.reduce((sum, product) => sum + product.priceToShow, 0);
+    const totalValue = products.reduce((sum, product) => sum + (product.priceToShow || 0), 0);
 
     const createdCategory = await Category.create({
       name,
