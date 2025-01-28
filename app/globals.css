@@ -185,6 +185,7 @@
     transition-duration: 500ms; 
     overflow-x:hidden;
     overflow-y:hidden;
+    -webkit-appearance:none;
   }
   
   .page-transition {
