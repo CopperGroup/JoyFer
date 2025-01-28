@@ -6,7 +6,7 @@ const Page = async () => {
 
     const users = await fetchUsers();
     return (
-        <section className="w-full px-10 py-10 max-[360px]:px-4"> 
+        <section className="w-full px-10 py-20 max-[360px]:px-4"> 
             <h1 className="w-full text-heading1-bold drop-shadow-text-blue">Клієнти</h1>
             <DataTable columns={columns} data={users}/>
         </section>

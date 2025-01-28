@@ -7,7 +7,7 @@ import Link from "next/link";
 const Page = async ({ params }: { params: { id: string } }) => {
     if(!params.id) {
         return (
-            <section className="w-full px-10 py-10 overflow-hidden"> 
+            <section className="w-full px-10 py-20 overflow-hidden"> 
                 <h1 className="w-full text-heading1-bold drop-shadow-text-blue max-[440px]:text-center">Сторінки не існує</h1>
             </section>
         )
@@ -18,7 +18,7 @@ const Page = async ({ params }: { params: { id: string } }) => {
     const usersOrders = await fetchUsersOrdersById(params.id);
 
     return (
-        <section className="w-full px-10 py-10 max-[360px]:px-4 "> 
+        <section className="w-full px-10 py-20 max-[360px]:px-4 "> 
             <h1 className="w-full text-heading1-bold drop-shadow-text-blue">Користувач {user.username}</h1>
             <div className="w-full border-red-500 pt-3 px-1">
                 <div className="w-full mt-20 border-green-500">

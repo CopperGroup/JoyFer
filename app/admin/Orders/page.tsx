@@ -16,7 +16,7 @@ const Page = async () => {
   const orders = await fetchOrders();
 
   return (
-    <section className="px-10 py-10 w-full max-[360px]:px-4">
+    <section className="px-10 py-20 w-full max-[360px]:px-4">
       <h1 className="text-heading1-bold drop-shadow-text-blue">Замовлення</h1>
       
       <Orders orders={JSON.stringify(orders)} />

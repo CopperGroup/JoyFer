@@ -117,7 +117,7 @@ const Dashboard = ({ stringifiedData }: { stringifiedData: string }) => {
   }
 
   return (
-    <div className="w-full h-full py-5 px-2 sm:py-10 sm:px-4 pb-20 max-[425px]:px-0">
+    <div className="w-full h-full py-5 px-2 sm:py-20 sm:px-4 pb-20 max-[425px]:px-0">
       <div className="w-full h-fit flex justify-between items-end max-lg:flex-col max-lg:items-start max-lg:justify-center">
         <div className="w-fit h-fit flex items-start mb-4 sm:mb-0">
           <h2 className="text-[48px] lg:text-[64px] font-semibold max-md:text-[40px] max-[425px]:text-[36px]">{Store.currency_sign}{timePeriod.totalValue.toFixed(2)}</h2>

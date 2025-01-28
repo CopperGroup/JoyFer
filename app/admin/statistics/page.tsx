@@ -16,9 +16,8 @@ import { sleep } from "@/lib/utils";
 const Page = async () => {
 
   return (
-    <section className="px-10 py-10 w-full max-[360px]:px-4"> 
+    <section className="px-10 py-20 w-full max-[360px]:px-4"> 
         <h1 className="w-full text-heading1-bold drop-shadow-text-blue max-[440px]:text-center">Statistics</h1>
-        <div className="w-full h-full flex flex-col gap-32">
           <TotalRevenue/>
           <TotalOrders/>
           <AverageOrderValue/>
@@ -31,7 +30,6 @@ const Page = async () => {
           <MostPopularRegion/>
           <SalesByCategory/>
           <TopSellingProduct/>
-        </div>
           {/* <LeastSellingProduct/> */}
           <div className="w-full h-1"></div>
     </section>
