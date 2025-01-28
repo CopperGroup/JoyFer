@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { useXmlParser } from '@/app/admin/context'
 import { stages } from './XMLParser'
+import { Store } from '@/constants/store'
 
 interface Param {
   name: string
@@ -57,7 +58,7 @@ export default function ProductPreview({ setCurrentStage }: { setCurrentStage: R
     }
 
     return (
-        <Card className="w-full max-w-[1600px] mx-auto">
+        <Card className="w-full max-w-[1600px]">
             <CardHeader>
                 <CardTitle className="text-heading2-bold">Product Preview</CardTitle>
             </CardHeader>
@@ -82,20 +83,20 @@ export default function ProductPreview({ setCurrentStage }: { setCurrentStage: R
                     </div>
                     <div className="space-y-4">
                         <h2 className="text-heading3-bold">{product.name}</h2>
-                        <div className="flex items-center space-x-2">
-                            <Badge variant={product.isAvailable ? "default" : "secondary"}>
+                        <div className="flex items-center gap-2 max-[475px]:flex-col max-[475px]:items-start">
+                            <Badge variant={product.isAvailable ? "default" : "secondary"} className="max-[475px]:-ml-3">
                                 {product.isAvailable ? "Available" : "Unavailable"}
                             </Badge>
                             <span className="text-small-medium text-gray-500">ID: {product.id}</span>
                         </div>
                         <div className="flex items-baseline space-x-2">
-                            <span className="text-body-bold">${product.priceToShow.toFixed(2)}</span>
+                            <span className="text-body-bold">{Store.currency_sign}{product.priceToShow}</span>
                             {product.price !== product.priceToShow && (
-                                <span className="text-base-regular text-gray-500 line-through">${product.price.toFixed(2)}</span>
+                                <span className="text-base-regular text-gray-500 line-through">{Store.currency_sign}{product.price}</span>
                             )}
                         </div>
                         <p className="text-base-regular text-gray-600">{product.description}</p>
-                        <div className="grid grid-cols-2 gap-2 text-small-medium">
+                        <div className="grid grid-cols-2 gap-2 text-small-medium max-[475px]:grid-cols-1">
                             <div>
                                 <span className="font-semibold">Vendor:</span> {product.vendor}
                             </div>
@@ -113,7 +114,7 @@ export default function ProductPreview({ setCurrentStage }: { setCurrentStage: R
                 </div>
                 <div className="mt-6">
                     <h3 className="text-heading4-medium mb-2">Parameters</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-[475px]:grid-cols-1">
                         {product.params.map((param, index) => (
                             <div key={index} className="bg-gray-50 p-2 rounded-md">
                                 <span className="text-small-semibold">{param.name}:</span> <span className="text-small-regular">{param.value}</span>

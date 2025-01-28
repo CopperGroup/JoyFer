@@ -152,7 +152,6 @@ export default function Connector({ setCurrentStage }: { setCurrentStage: React.
             if(connection) {
                 const rightElement = refCard.rightElements.find(element => element.id === connection.end);
             
-                console.log(rightElement)
                 if(rightElement) {
                     if(sessionStorage.getItem("tagsMap")) {
                         let counter = 1;
@@ -282,8 +281,6 @@ export default function Connector({ setCurrentStage }: { setCurrentStage: React.
   const handleSaveConfiguration = () => {
     sessionStorage.setItem(`connection-card-${currentCard.id}`, JSON.stringify(connections));
 
-    console.log(cards);
-
     const configurator = generateConfigurator(cards)
 
     sessionStorage.setItem("configurator", JSON.stringify(configurator))
@@ -301,7 +298,7 @@ export default function Connector({ setCurrentStage }: { setCurrentStage: React.
   }
   
   return (
-    <div className="w-full mx-auto p-6 space-y-6">
+    <div className="w-full space-y-6">
       <Card className="w-full rounded-xl overflow-hidden">
         <CardContent className="p-6">
           <div className="mb-6">
@@ -320,7 +317,7 @@ export default function Connector({ setCurrentStage }: { setCurrentStage: React.
             </Button>
           </div>
           <div className="w-full max-h-[500px] overflow-auto p-3">
-            <div ref={containerRef} className="relative flex justify-between gap-4 min-h-[300px] mb-6">
+            <div ref={containerRef} className="relative flex justify-between gap-4 min-h-[300px] min-w-[600px] mb-6">
                 <ElementList
                 elements={currentCard.leftElements}
                 side="left"
@@ -352,9 +349,9 @@ export default function Connector({ setCurrentStage }: { setCurrentStage: React.
                 </svg>
             </div>
           </div>
-          <div className="flex justify-between items-center">
-            <Button onClick={handleReset} variant="outline">Reset</Button>
-            <div className="flex items-center gap-2">
+          <div className="flex justify-between items-center mt-3">
+            <Button onClick={handleReset} variant="outline" className="max-[480px]:hidden">Reset</Button>
+            <div className="flex items-center gap-2 max-[480px]:w-full max-[480px]:justify-between">
               <Button onClick={handlePrevCard} variant="outline" size="icon">
                 <ChevronLeft className="h-4 w-4" />
               </Button>
@@ -363,10 +360,14 @@ export default function Connector({ setCurrentStage }: { setCurrentStage: React.
                 <ChevronRight className="h-4 w-4" />
               </Button>
               {currentCardIndex === cards.length - 1 && 
-                <Button onClick={handleSaveConfiguration} disabled={areAllLeftElementsConnected(currentCard.leftElements, connections)}>Зберегти</Button>
+                <Button onClick={handleSaveConfiguration} disabled={areAllLeftElementsConnected(currentCard.leftElements, connections)} className="max-[480px]:hidden">Зберегти</Button>
               }
             </div>
           </div>
+          {currentCardIndex === cards.length - 1 && 
+            <Button onClick={handleSaveConfiguration} disabled={areAllLeftElementsConnected(currentCard.leftElements, connections)} className="w-full mt-2 min-[481px]:hidden">Зберегти</Button>
+          }
+          <Button onClick={handleReset} variant="outline" className="w-full mt-2 min-[481px]:hidden">Reset</Button>
         </CardContent>
       </Card>
     </div>

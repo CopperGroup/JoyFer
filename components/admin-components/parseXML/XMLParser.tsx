@@ -40,7 +40,7 @@ export default function XMLParser() {
 
   const CurrentStageComponent = stages[currentStage];
   return (
-    <div className="p-4">
+    <div className="pt-6">
       <div className="mb-6">
         <CurrentStageComponent setCurrentStage={setCurrentStage}/>
       </div>
