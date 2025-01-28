@@ -24,9 +24,9 @@ export async function updateCategories(
   try {
     connectToDB();
 
-    // console.log("Updating category")
-    // Fetch all existing categories
-    const existingCategories = await Category.find();
+    // Fetch all existing categories only when necessary
+    const existingCategories =
+      productOperation === "create" ? [] : await Category.find();
     const categoryMap = new Map(
       existingCategories.map((cat) => [cat.name, cat])
     );
@@ -40,7 +40,26 @@ export async function updateCategories(
     for (const product of products) {
       const newCategoryName = product.category; // Updated category
 
-      // 1. Check all categories to remove the product from old ones
+      if (productOperation === "create") {
+        // For "create", simply add the product to its category
+        if (!categoriesToUpdate[newCategoryName]) {
+          const existingCategory = categoryMap.get(newCategoryName);
+          categoriesToUpdate[newCategoryName] = {
+            productIds: existingCategory ? [...existingCategory.products] : [],
+            totalValue: existingCategory ? existingCategory.totalValue : 0,
+          };
+        }
+
+        const newCategory = categoriesToUpdate[newCategoryName];
+        if (!newCategory.productIds.includes(product._id)) {
+          newCategory.productIds.push(product._id);
+          newCategory.totalValue += product.priceToShow || 0;
+        }
+
+        continue; // Skip the rest of the loop for "create"
+      }
+
+      // For "update" and "delete" operations, handle old categories
       for (const [categoryName, category] of categoryMap.entries()) {
         if (category.products.includes(product._id)) {
           if (categoryName !== newCategoryName || productOperation === "delete") {
@@ -49,20 +68,15 @@ export async function updateCategories(
               (id: string) => id.toString() !== product._id.toString()
             );
 
-              const remainingProducts = await Product.find({
-                _id: { $in: category.products },
-              });
+            const remainingProducts = await Product.find({
+              _id: { $in: category.products },
+            });
 
-              console.log("Suma", remainingProducts.reduce(
-                (sum, prod) => sum + (prod.priceToShow || 0),
-                0
-              ))
-              category.totalValue = remainingProducts.reduce(
-                (sum, prod) => sum + (prod.priceToShow || 0),
-                0
-              );
+            category.totalValue = remainingProducts.reduce(
+              (sum, prod) => sum + (prod.priceToShow || 0),
+              0
+            );
 
-              // console.log(category.totalValue)
             // Track the changes for this category
             categoriesToUpdate[categoryName] = {
               productIds: category.products,
@@ -72,7 +86,7 @@ export async function updateCategories(
         }
       }
 
-      // 2. Add the product to the new category
+      // Add the product to the new category for "update"
       if (!categoriesToUpdate[newCategoryName]) {
         const existingCategory = categoryMap.get(newCategoryName);
         categoriesToUpdate[newCategoryName] = {
@@ -82,7 +96,7 @@ export async function updateCategories(
       }
 
       const newCategory = categoriesToUpdate[newCategoryName];
-      if (productOperation === "create" || productOperation === "update") {
+      if (productOperation === "update") {
         if (!newCategory.productIds.includes(product._id)) {
           newCategory.productIds.push(product._id);
 
@@ -105,7 +119,7 @@ export async function updateCategories(
       );
     }
 
-    // 3. Perform database updates
+    // Perform database updates
     const categoryOps = Object.entries(categoriesToUpdate).map(
       async ([name, { productIds, totalValue }]) => {
         if (categoryMap.has(name)) {
@@ -132,6 +146,7 @@ export async function updateCategories(
     );
   }
 }
+
 
 
 
@@ -309,10 +324,15 @@ export async function moveProductsToCategory({
     );
 
     targetCategory.products.push(...productIds);
-    targetCategory.totalValue = initialCategory.products.filter(
-      (product: ProductType) => productIds.includes(product._id.toString())
-    ).reduce((sum: number, product: ProductType) => sum + (product.priceToShow || 0), 0)
 
+    await targetCategory.save();
+
+    const populatedTargetCategory = await Category.findById(targetCategoryId).populate("products");
+
+    populatedTargetCategory.totalValue = populatedTargetCategory.products.reduce((sum: number, product: ProductType) => sum + product.priceToShow, 0)
+
+    await populatedTargetCategory.save();
+    
     initialCategory.products = initialCategory.products.filter(
       (product: ProductType) => !productIds.includes(product._id.toString())
     );
@@ -352,11 +372,13 @@ export async function createNewCategory({ name, products, previousCategoryId }: 
     const productIds = products.map(product => product._id);
 
     if(previousCategoryId) {
-      const previousCategory = await Category.findById(previousCategoryId);
+      const previousCategory = await Category.findById(previousCategoryId).populate("products");
 
       previousCategory.products = previousCategory.products.filter(
-        (product: ObjectId) => !productIds.includes(product.toString())
+        (product: ProductType) => !productIds.includes(product._id.toString())
       );
+
+      previousCategory.totalValue = previousCategory.products.reduce((sum: number, product: ProductType) => sum + product.priceToShow, 0)
       
       await previousCategory.save();
 

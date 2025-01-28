@@ -4,6 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { ProductType } from "@/lib/types/types"
+import { Store } from "@/constants/store"
 
 
 interface ProductsTableProps {
@@ -60,8 +61,8 @@ export default function ProductsTable({ stringifiedProducts, categoryName, selec
                 <TableCell className="px-2 sm:px-4 font-medium">
                   <div className="truncate max-w-[150px] sm:max-w-none">{product.name}</div>
                 </TableCell>
-                <TableCell className="px-2 sm:px-4">${product.price.toFixed(2)}</TableCell>
-                <TableCell className={`px-2 sm:px-4 ${product.price !== product.priceToShow ? "text-red-500" : ""}`}>${product.priceToShow.toFixed(2)}</TableCell>
+                <TableCell className="px-2 sm:px-4">{Store.currency_sign}{product.price.toFixed(2)}</TableCell>
+                <TableCell className={`px-2 sm:px-4 ${product.price !== product.priceToShow ? "text-red-500" : ""}`}>{Store.currency_sign}{product.priceToShow.toFixed(2)}</TableCell>
               </TableRow>
             ))}
           </TableBody>

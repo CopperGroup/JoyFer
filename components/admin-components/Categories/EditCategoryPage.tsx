@@ -41,7 +41,7 @@ export default function EditCategoryPage(props: ReadOnly<CategoryPageProps>) {
   const [categoryName, setCategoryName] = useState(props.categoryName)
   const [newCategoryName, setNewCategoryName] = useState("")
   const [newCategoryId, setNewCategoryId] = useState("")
-  const [discountPercentage, setDiscountPercentage] = useState("0")
+  const [discountPercentage, setDiscountPercentage] = useState(props.averageDiscountPercentage.toString())
   const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set())
   const [newCategory, setNewCategory] = useState(false)
   const [isDiscountInputFocused, setIsDiscountInputFocused] = useState(false)
@@ -417,7 +417,7 @@ export default function EditCategoryPage(props: ReadOnly<CategoryPageProps>) {
                   {allCategories.map((category) => category.name).includes(newCategoryName) && (
                     <p className="text-subtle-medium text-yellow-600 mt-1">
                       Category already exists.{" "}
-                      <Button variant="link" className="p-0" onClick={() => {setNewCategoryId((allCategories.filter(category => category.name === newCategoryName))[0].categoryId); setNewCategory(false)}} disabled={loading}>
+                      <Button variant="link" className="p-0" onClick={() => {setNewCategoryId((allCategories.filter(category => category.name === newCategoryName))[0].categoryId); setNewCategory(false); setNewCategoryName("")}} disabled={loading}>
                         Click here to select instead
                       </Button>
                     </p>
@@ -445,7 +445,7 @@ export default function EditCategoryPage(props: ReadOnly<CategoryPageProps>) {
               <Button variant="outline" onClick={() => setActiveSection("main")} className="text-base-medium" disabled={loading}>
                 Cancel
               </Button>
-              <Button onClick={handleConfirmMoveProducts} className="text-base-medium text-white" disabled={loading}>
+              <Button onClick={handleConfirmMoveProducts} className="text-base-medium text-white" disabled={loading || allCategories.map((category) => category.name).includes(newCategoryName)}>
                 {loading ? 
                   <>
                     <span>In progress</span>
@@ -550,7 +550,7 @@ export default function EditCategoryPage(props: ReadOnly<CategoryPageProps>) {
                       {allCategories.map((category) => category.name).includes(newCategoryName) && (
                         <p className="text-subtle-medium text-yellow-600 mt-1">
                           Category already exists.{" "}
-                          <Button variant="link" className="p-0" onClick={() => {setNewCategoryId((allCategories.filter(category => category.name === newCategoryName))[0].categoryId); setNewCategory(false)}} disabled={loading}>
+                          <Button variant="link" className="p-0" onClick={() => {setNewCategoryId((allCategories.filter(category => category.name === newCategoryName))[0].categoryId); setNewCategory(false); setNewCategoryName("")}} disabled={loading}>
                             Click here to select instead
                           </Button>
                         </p>
@@ -601,7 +601,7 @@ export default function EditCategoryPage(props: ReadOnly<CategoryPageProps>) {
                 <Button
                   onClick={confirmDeleteAndMove}
                   className="text-base-medium text-white bg-yellow-500 hover:bg-yellow-600"
-                  disabled={!newCategoryId || confirmationCategoryName !== categoryName || deleteConfirmation !== "delete" || loading}
+                  disabled={(newCategory ? !newCategoryName: !newCategoryId) || confirmationCategoryName !== categoryName || deleteConfirmation !== "delete" || loading || allCategories.map((category) => category.name).includes(newCategoryName)}
                 >
                 {loading ? 
                   <>
