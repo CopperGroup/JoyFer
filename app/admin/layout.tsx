@@ -25,7 +25,7 @@ export default function RootLayout({
          
       <main className="flex flex-row ">
         <AdminSidebar/>
-        <section className="overflow-x-hidden overflow-y-hidden w-full">
+        <section className="overflow-x-hidden w-full">
           <div className="w-full h-full">
             {children}
           </div>
