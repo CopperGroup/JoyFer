@@ -16,7 +16,7 @@ const Page = async ({ params }: { params: { id: string } }) => {
     const categoryInfo = await fetchCategory({ categoryId: params.id });
 
     return (
-        <section className="w-full px-10 pt-10 h-screen ml-2 max-[400px]:px-6 max-[360px]:px-4">
+        <section className="w-full px-10 pt-10 ml-2 max-[400px]:px-6 max-[360px]:px-4">
             <CategoryPage {...categoryInfo} />
         </section>
     );
