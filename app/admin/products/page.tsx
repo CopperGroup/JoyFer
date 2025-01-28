@@ -9,7 +9,7 @@ const Page = async () => {
   const products = await fetchProducts(); 
 
   return (
-    <section className="px-10 py-20 w-full max-[360px]:px-4"> 
+    <section className="px-10 py-10 w-full max-[360px]:px-4"> 
       <h1 className="w-full text-heading1-bold drop-shadow-text-blue mb-10">Stock</h1> 
       
       <ProductsTable stringifiedProducts={JSON.stringify(products)}/>
