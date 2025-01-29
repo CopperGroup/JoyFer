@@ -11,7 +11,6 @@ import { SuccessfulOrders } from "@/components/admin-components/statistics/Succe
 import { TopSellingProduct } from "@/components/admin-components/statistics/TopSellingProduct";
 import { TotalOrders } from "@/components/admin-components/statistics/TotalOrders";
 import { TotalRevenue } from "@/components/admin-components/statistics/TotalRevenue";
-import { sleep } from "@/lib/utils";
 
 const Page = async () => {
 

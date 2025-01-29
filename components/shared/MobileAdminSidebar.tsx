@@ -62,7 +62,7 @@ const MobileAdminSidebar = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <Link href="/" className="text-heading3-bold">SANTEHVAN</Link>
+            <Link href="/" className="text-heading3-bold">FO SCANDINAVIA</Link>
             <p className="text-small-x-semibold text-dark-4 mt-4 mb-2">Admin</p>
             <div className="flex flex-col gap-2">
               {sidebarLinks.map((link) => {
