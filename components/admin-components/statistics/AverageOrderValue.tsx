@@ -59,7 +59,7 @@ export function AverageOrderValue() {
   }, [screenWidth])
 
   return (
-    <section className="w-full h-[25rem] mt-16">
+    <section className="w-full   mt-16">
       <div className="w-full h-full">
         <div className="w-full h-fit flex gap-2 justify-end max-[1300px]:flex-col">
           <div className="w-full h-full">
