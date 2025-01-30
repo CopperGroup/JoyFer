@@ -78,7 +78,10 @@ export default function BurgerMenu({ email, user }: { email: string; user: strin
 
                 if (label === "Інформація") {
                   return (
-                    <>
+                    <div className="flex gap-2" key={label}>
+                      {isActive &&
+                        <ArrowRight className="text-red-500"/>
+                      }
                       <Menubar key={label} className="border-0 p-0 w-full">
                         <MenubarMenu>
                           <MenubarTrigger className="w-full flex justify-center items-center text-neutral-400 hover:text-white focus:text-white">
@@ -101,17 +104,16 @@ export default function BurgerMenu({ email, user }: { email: string; user: strin
                         </MenubarMenu>
                       </Menubar>
                     
-                    </>
+                    </div>
                   )
                 }
 
                 return (
-                  <div className="flex gap-2">
+                  <div className="flex gap-2" key={label}>
                     {isActive &&
                       <ArrowRight className="text-red-500"/>
                     }
                     <TransitionLink
-                      key={label}
                       href={href}
                       className={`text-black ${isActive ? "font-semibold" : ""} w-full text-center`}
                       onClick={() => setIsOpen(false)}
