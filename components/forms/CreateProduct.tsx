@@ -3,8 +3,8 @@
 import * as z from "zod";
 import Image from "next/image";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
-import { usePathname, useRouter } from "next/navigation";
-import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createProduct, findAllProductsCategories } from "@/lib/actions/product.actions";
 import {
@@ -26,10 +26,9 @@ import { useDropzone } from "@uploadthing/react";
 import { generateClientDropzoneAccept } from "uploadthing/client";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
 import { removeAllButOne, removeExtraLeadingCharacters } from "@/lib/utils";
-import { createNewCategory, getCategoriesNamesAndIds, updateCategories } from "@/lib/actions/categories.actions";
+import { getCategoriesNamesAndIds, updateCategories } from "@/lib/actions/categories.actions";
 import { Store } from "@/constants/store";
 
-type ProductFormValues = z.infer<typeof ProductValidation>;
 type DiscountType = "percentage" | "digits";
 type UploadingState = "initial" | "uploading" | "success" | "error";
 
@@ -169,7 +168,7 @@ const CreateProduct = () => {
 
   const onSubmit = async (values: z.infer<typeof ProductValidation>) => {
     
-    console.log(!isNewCategory ? categories.filter(category => category.categoryId === values.category)[0].name : values.category)
+    // console.log(!isNewCategory ? categories.filter(category => category.categoryId === values.category)[0].name : values.category)
 
     const result = await createProduct({
       id: values.id,
@@ -534,7 +533,7 @@ const CreateProduct = () => {
 
                             const rawValue = removeExtraLeadingCharacters(removeAllButOne(e.target.value.replace(/[^\d.]/g, ""), "."), "0");
                             let discount = (parseFloat(rawValue) - parseFloat(rawValue) * (discountPercentage / 100))
-                            console.log(rawValue, discount)
+                            // console.log(rawValue, discount)
                             if(isNaN(discount)) {
                               discount = 0
                             }
@@ -576,7 +575,7 @@ const CreateProduct = () => {
                             
                               if (!isNaN(p)) {
                                 const discountValue = p - (numericValue / 100) * p;
-                                console.log("D", discountValue);
+                                // console.log("D", discountValue);
                             
                                 form.setValue("priceToShow", `₴${discountValue.toFixed(2)}`);
                                 setDiscountPrice(discountValue.toFixed(2))
@@ -801,35 +800,6 @@ const CreateProduct = () => {
           <div className="w-full h-fit pl-4 pr-5 py-4 border rounded-2xl">
             <h4 className="w-full text-base-semibold text-[15px] mb-4">Параметри</h4>
             <div className="w-full grid grid-cols-2 gap-3 max-[425px]:grid-cols-1">
-              {params.map((param,index) => (
-                <FormField
-                  key={param.name}
-                  control={form.control}
-                  name={param.name as keyof ProductFormValues}
-                  render={({ field }) => (
-                      <FormItem className='w-full'>
-                          <FormLabel className='text-small-medium text-[14px] text-dark-1'>
-                              {paramsNamesUa[index]} {['Ширина', 'Висота', 'Глибина'].includes(paramsNamesUa[index]) && (<span className="text-subtle-medium">(см)</span>)}<span className="text-subtle-medium"> *</span>
-                          </FormLabel>
-                          <FormControl>
-                              <Input
-                                  type='text'
-                                  className='text-small-regular text-gray-700 text-[13px] bg-neutral-100 ml-1 focus-visible:ring-black focus-visible:ring-[1px]'
-                                  value={
-                                    paramsNamesUa[index] === "Назва" && typeof field.value === "string"
-                                      ? field.value.replace(/_/g, " ")
-                                      : field.value as string
-                                  }
-                                  onChange={field.onChange}
-                                  onBlur={field.onBlur}
-                                  ref={field.ref}
-                              />
-                          </FormControl>
-                          <FormMessage />
-                      </FormItem>
-                  )}
-                />
-              ))}
               {fields.map((field, index) => (
                         <FormItem key={field.id} className="w-full bg-white">
                           <div className="relative w-full flex justify-end">

@@ -43,12 +43,6 @@ const userSchema = new mongoose.Schema({
             ref: 'Product'
         }
     ],
-    cart: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Product'
-        }
-    ],
     discounts: [
         {
             type: mongoose.Schema.Types.ObjectId,

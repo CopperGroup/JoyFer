@@ -455,3 +455,49 @@ export async function fetchCategoriesProducts(categoryId: string, type?: 'json')
   }
 }
 
+interface CategoryParams {
+  name: string;
+  totalProducts: number;
+  params: {
+    name: string,
+    totalProducts: number
+  };
+}
+
+export async function fetchCategoriesParams(): Promise<CategoryParams>;
+export async function fetchCategoriesParams(type: 'json'): Promise<string>;
+
+export async function fetchCategoriesParams(type?: 'json') {
+  try {
+      await connectToDB();
+      
+      const categories = await Category.find().populate("products");
+      
+      const result = categories.reduce((acc, category) => {
+          const totalProducts = category.products.length;
+          const paramCounts: Record<string, number> = {};
+          
+          category.products.forEach((product: ProductType) => {
+              product.params.forEach(param => {
+                  const key = param.name;
+                  if (!paramCounts[key]) {
+                      paramCounts[key] = 0;
+                  }
+                  paramCounts[key] += 1;
+              });
+          });
+          
+          acc[category._id] = {
+              name: category.name,
+              totalProducts,
+              params: Object.entries(paramCounts).map(([name, totalProducts]) => ({ name, totalProducts }))
+          };
+          
+          return acc;
+      }, {});
+
+      return type === 'json' ? JSON.stringify(result) : result;
+  } catch (error: any) {
+      throw new Error(`${error.message}`);
+  }
+}

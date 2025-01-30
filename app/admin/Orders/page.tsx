@@ -20,7 +20,7 @@ const Page = async () => {
       <h1 className="text-heading1-bold drop-shadow-text-blue">Замовлення</h1>
       
       <Orders orders={JSON.stringify(orders)} />
-  </section>
+    </section>
   )
 }
 

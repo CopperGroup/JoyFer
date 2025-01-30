@@ -26,7 +26,7 @@ interface CreateParams {
     category?: string,
     description: string,
     isAvailable: boolean,
-    params: {
+    params?: {
         name: string,
         value: string
     }[],
@@ -100,7 +100,7 @@ export async function updateUrlProductsMany(products: Partial<CreateUrlParams>[]
         await Product.bulkWrite(bulkOperations);
 
         const updatedProducts = await Product.find({ _id: { $in: products.map(product => product._id)}});
-        
+
         await updateCategories(updatedProducts, "update")
         clearCache("createProduct");
     } catch (error: any) {
@@ -127,27 +127,13 @@ export async function createProduct({ id, name, quantity, images, url, priceToSh
             vendor: vendor,
             description: description,
             isAvailable: isAvailable,
-            // params: [
-            //    { name: "Товар", value: params.Model.replace(/ /g, '_') },
-            //    { name: "Ширина, см", value: parseFloat(params.Width).toFixed(2).toString() },
-            //    { name: "Висота, см", value: parseFloat(params.Height).toFixed(2).toString() },
-            //    { name: "Глибина, см", value: parseFloat(params.Depth).toFixed(2).toString() },
-            //    { name: "Вид", value: params.Type },
-            //    { name: "Колір", value: params.Color },
-            // ],
+            params: customParams || []
         })
-
-        if(customParams){
-            for(const customParam of customParams){
-                createdProduct.params.push({ name: customParam.name, value: customParam.value });
-            }
-        }
 
         await createdProduct.save();
 
         await clearCatalogCache();
 
-        clearCache("createProduct");
         clearCache("createProduct");
 
         if(type === "json") {

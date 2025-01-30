@@ -42,7 +42,7 @@ type Category = {
 const EditProduct = ({ stringifiedProduct, categories, stringifiedCategory }: { stringifiedProduct: string, categories: Category[], stringifiedCategory: string }) => {
   const product: ProductType = JSON.parse(stringifiedProduct);
   const productCategory: CategoryType = JSON.parse(stringifiedCategory)
-  console.log(product.priceToShow !== product.price ? 1 - (product.priceToShow / product.price) : 0)
+  // console.log(product.priceToShow !== product.price ? 1 - (product.priceToShow / product.price) : 0)
 
   const [ discountPrice, setDiscountPrice ] = useState<string>("");
   const [ discountPercentage, setDiscountPercentage ] = useState<number>((product.priceToShow !== product.price ? parseFloat(((1 - (product.priceToShow / product.price)) * 100).toFixed(0)) : 0 )|| 0);
@@ -60,7 +60,7 @@ const EditProduct = ({ stringifiedProduct, categories, stringifiedCategory }: { 
 
   const [ isNewCategory, setIsNewCategory ] = useState<boolean>(false);
 
-  console.log(product)
+  // console.log(product)
   const handleMouseEnter = (index: number) => {
     setHoveredIndex(index);
   };

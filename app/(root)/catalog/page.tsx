@@ -31,9 +31,6 @@ const Catalog = async ({searchParams,data}:any) => {
   const maxPrice = Math.max(...filtredProducts.map(item => item.priceToShow));
   const minPrice = Math.min(...filtredProducts.map(item => item.priceToShow));
   const vendors = Array.from(new Set (filtredProducts.map(item => item.vendor))).filter(function(item) {return item !== '';});
-  const colors = Array.from(new Set (filtredProducts.map(item => item.params[5]?.value))).filter(function(item) {return item !== '';});
-  const series = Array.from(new Set (filtredProducts.map(item => item.params[0].value.split('_')[0].split('-')[0]))).filter(function(item) {return item !== '';});
-  const types = Array.from(new Set (filtredProducts.map(item => item.params[4]?.value))).filter(function(item) {return item !== '';});
 
   const maxMin = () => {
     const allParams = filtredProducts.map(item => item.params);
@@ -85,7 +82,7 @@ const Catalog = async ({searchParams,data}:any) => {
          minPrice={minPrice} 
          maxPrice={maxPrice} 
          maxMin={maxMinRes} 
-         checkParams={{categories, vendors, series, colors, types }} 
+         checkParams={{categories, vendors, series: [], colors: [], types: [] }} 
          counts={counts}
         />
         <div className='w-full'>
