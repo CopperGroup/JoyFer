@@ -282,7 +282,7 @@ const CreateProduct = () => {
                       disabled
                     />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-[12px] text-red-500 ml-2" />
                 </FormItem>
               )}
             />
@@ -305,7 +305,7 @@ const CreateProduct = () => {
                         {...field}
                       />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-[12px] text-red-500 ml-2" />
                   </FormItem>
                 )}
               />
@@ -324,7 +324,7 @@ const CreateProduct = () => {
                         {...field}
                       />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-[12px] text-red-500 ml-2" />
                   </FormItem>
                 )}
               />
@@ -506,7 +506,7 @@ const CreateProduct = () => {
                         {...field}
                       />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-[12px] text-red-500 ml-2" />
                   </FormItem>
                 )}
               />
@@ -544,7 +544,7 @@ const CreateProduct = () => {
                           }}
                         />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-[12px] text-red-500 ml-2" />
                   </FormItem>
                 )}
               />
@@ -644,7 +644,7 @@ const CreateProduct = () => {
                                 disabled={form.getValues("price").slice(1).length === 0}
                               />
                             </FormControl>
-                            <FormMessage />
+                            <FormMessage className="text-[12px] text-red-500 ml-2" />
                           </FormItem>
                         )}
                       />
@@ -693,7 +693,7 @@ const CreateProduct = () => {
                           {...field}
                         />
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage className="text-[12px] text-red-500 ml-2" />
                     </FormItem>
                   )}
                 />
@@ -713,7 +713,7 @@ const CreateProduct = () => {
                           {...field}
                         />
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage className="text-[12px] text-red-500 ml-2" />
                     </FormItem>
                   )}
                 />
@@ -739,7 +739,7 @@ const CreateProduct = () => {
                             {...field}
                           />
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage className="text-[12px] text-red-500 ml-2" />
                       </FormItem>
                     )}
                   />
@@ -783,7 +783,7 @@ const CreateProduct = () => {
                           className="min-w-[300px] text-base-regular bg-white"
                           triggerStyle="text-[13px] text-gray-700 font-normal bg-neutral-100"
                         />
-                      <FormMessage />
+                      <FormMessage className="text-[12px] text-red-500 ml-2" />
                     </FormItem>
                   )}
                 />
@@ -832,7 +832,7 @@ const CreateProduct = () => {
                                     // onChange={(e) => {field.value = e.target.value; console.log(field)}}
                                 />
                             </FormControl>
-                            <FormMessage />
+                            <FormMessage className="text-[12px] text-red-500 ml-2" />
                         </FormItem>
                 ))}
             </div>
@@ -867,7 +867,7 @@ const CreateProduct = () => {
                         }}
                       />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-[12px] text-red-500 ml-2" />
                 </FormItem>
               )}
             />
