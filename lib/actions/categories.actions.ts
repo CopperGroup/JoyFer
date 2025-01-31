@@ -25,8 +25,7 @@ export async function updateCategories(
     connectToDB();
 
     // Fetch all existing categories only when necessary
-    const existingCategories =
-      productOperation === "create" ? [] : await Category.find();
+    const existingCategories = await Category.find();
     const categoryMap = new Map(
       existingCategories.map((cat) => [cat.name, cat])
     );

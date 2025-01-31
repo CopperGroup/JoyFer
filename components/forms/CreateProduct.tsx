@@ -28,6 +28,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { removeAllButOne, removeExtraLeadingCharacters } from "@/lib/utils";
 import { getCategoriesNamesAndIds, updateCategories } from "@/lib/actions/categories.actions";
 import { Store } from "@/constants/store";
+import { SearchableSelect } from "@/components/shared/SearchableSelect"
 
 type DiscountType = "percentage" | "digits";
 type UploadingState = "initial" | "uploading" | "success" | "error";
@@ -742,10 +743,20 @@ const CreateProduct = () => {
                       </FormItem>
                     )}
                   />
-                  {categories.map((cat) => cat.name).includes(form.getValues('category')) && (
+                  {categories.some((cat) => cat.name.trim() === form.getValues('category').trim()) && (
                     <p className="text-subtle-medium text-yellow-600 mt-1.5 ml-2">
                       Category already exists.{" "}
-                      <Button variant="link" className="h-fit p-0" onClick={() => {form.setValue('category', (categories.filter(cat => cat.name === form.getValues('category')))[0].categoryId); setIsNewCategory(false)}}>
+                      <Button
+                        variant="link"
+                        className="h-fit p-0"
+                        onClick={() => {
+                          form.setValue(
+                            'category',
+                            categories.find(cat => cat.name === form.getValues('category'))?.categoryId || ''
+                          );
+                          setIsNewCategory(false);
+                        }}
+                      >
                         Click here to select instead
                       </Button>
                     </p>
@@ -760,26 +771,16 @@ const CreateProduct = () => {
                       <FormLabel className='text-small-medium text-[14px] text-dark-1'>
                         Категорія товару<span className="text-subtle-medium"> *</span>
                       </FormLabel>
-                      <Select        
-                        onValueChange={(value) => {
-                          // Check if the value is defined before setting it because Initial Rendering and Component Mounting: When the component containing the Select is rendered for the first time, React initializes all the states and props. During this process, the Select component is mounted, and onValueChange is triggered because the component tries to reconcile the initial state of the Select with its current value. Since no value has been selected yet, it is initially undefined.
-                          if (value) {
-                            field.onChange(value);
-                          }
-                        }} 
-                        {...field}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="text-small-regular text-gray-700 text-[13px] bg-neutral-100 ml-1 focus-visible:ring-black focus-visible:ring-[1px]">
-                            <SelectValue className="text-small-regular text-gray-700 text-[13px]"></SelectValue>
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {categories.map((category, index) => (
-                            <SelectItem key={index} value={category.categoryId}>{category.name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        <SearchableSelect
+                          items={categories}
+                          placeholder="Select category"
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          renderValue="name"
+                          searchValue="name"
+                          itemValue="categoryId"
+                          className="min-w-[300px] text-base-regular bg-white"
+                        />
                       <FormMessage />
                     </FormItem>
                   )}
