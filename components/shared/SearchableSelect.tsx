@@ -14,6 +14,7 @@ export type Item = {
 }
 
 interface SearchableSelectProps<T extends Item> {
+  isForm: boolean
   items: T[]
   placeholder?: string
   value?: string
@@ -22,9 +23,12 @@ interface SearchableSelectProps<T extends Item> {
   searchValue: keyof T
   itemValue: keyof T
   className?: string
+  triggerStyle?: string
+  disabled?: boolean
 }
 
 export function SearchableSelect<T extends Item>({
+  isForm,
   items,
   placeholder = "Select an item",
   value,
@@ -33,6 +37,8 @@ export function SearchableSelect<T extends Item>({
   searchValue,
   itemValue,
   className,
+  triggerStyle,
+  disabled = false
 }: SearchableSelectProps<T>) {
   const [open, setOpen] = React.useState(false)
   const [searchQuery, setSearchQuery] = React.useState("")
@@ -61,14 +67,20 @@ export function SearchableSelect<T extends Item>({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <FormControl>
-          <Button variant="outline" role="combobox" aria-expanded={open} className="w-full text-[13px] text-gray-700 font-normal justify-between bg-neutral-100">
-            <span className="truncate">
-              {value ? items.find((item) => item[itemValue] === value)?.[renderValue] : placeholder}
-            </span>
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-          </Button>
-        </FormControl>
+        {isForm ? (
+            <FormControl>
+                <Button variant="outline" role="combobox" aria-expanded={open} className={cn("w-full justify-between", triggerStyle)} disabled={disabled}>
+                    <span className="truncate">{value ? items.find((item) => item[itemValue] === value)?.[renderValue] : placeholder}</span>
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+            </FormControl>
+
+        ): (
+            <Button variant="outline" role="combobox" aria-expanded={open} className={cn("w-full justify-between", triggerStyle)} disabled={disabled}>
+                <span className="truncate">{value ? items.find((item) => item[itemValue] === value)?.[renderValue] : placeholder}</span>
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+        )}
       </PopoverTrigger>
       <PopoverContent className={cn("w-[var(--radix-popover-trigger-width)] p-0 min-h-[260px]", className)}>
         <Command className="w-full">

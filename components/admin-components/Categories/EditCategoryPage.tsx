@@ -25,6 +25,7 @@ import ProductsTable from "@/components/shared/ProductsTable"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import ConfirmDelete from "@/components/interface/ConfirmDelete"
 import { useRouter } from "next/navigation"
+import { SearchableSelect } from "@/components/shared/SearchableSelect"
 
 interface CategoryPageProps {
   _id: string
@@ -414,7 +415,7 @@ export default function EditCategoryPage(props: ReadOnly<CategoryPageProps>) {
                     className="text-base-regular border-gray-300 focus:border-gray-400 rounded-md"
                     disabled={loading}
                   />
-                  {allCategories.map((category) => category.name).includes(newCategoryName) && (
+                  {allCategories.some((category) => category.name === newCategoryName) && (
                     <p className="text-subtle-medium text-yellow-600 mt-1">
                       Category already exists.{" "}
                       <Button variant="link" className="p-0" onClick={() => {setNewCategoryId((allCategories.filter(category => category.name === newCategoryName))[0].categoryId); setNewCategory(false); setNewCategoryName("")}} disabled={loading}>
@@ -424,18 +425,31 @@ export default function EditCategoryPage(props: ReadOnly<CategoryPageProps>) {
                   )}
                 </>
               ) : (
-                <Select value={newCategoryId} onValueChange={setNewCategoryId} disabled={loading}>
-                  <SelectTrigger className="text-base-regular">
-                    <SelectValue placeholder="Choose existing category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {allCategories.map((category, index) => (
-                      <SelectItem key={index} value={category.categoryId} className="text-base-regular">
-                        {category.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                // <Select value={newCategoryId} onValueChange={setNewCategoryId} disabled={loading}>
+                //   <SelectTrigger className="text-base-regular">
+                //     <SelectValue placeholder="Choose existing category" />
+                //   </SelectTrigger>
+                //   <SelectContent>
+                //     {allCategories.map((category, index) => (
+                //       <SelectItem key={index} value={category.categoryId} className="text-base-regular">
+                //         {category.name}
+                //       </SelectItem>
+                //     ))}
+                //   </SelectContent>
+                // </Select>
+                <SearchableSelect
+                  isForm={false}
+                  items={allCategories}
+                  placeholder="Choose existing category"
+                  value={newCategoryId}
+                  onValueChange={setNewCategoryId}
+                  renderValue="name"
+                  searchValue="name"
+                  itemValue="categoryId"
+                  className="min-w-[300px] text-base-regular bg-white"
+                  triggerStyle="font-normal mt-1"
+                  disabled={loading}
+                />
               )}
             </div>
             <Button onClick={() => {setNewCategory(!newCategory), setNewCategoryName("")}} variant="outline" className="text-base-medium" disabled={loading}>
@@ -445,7 +459,7 @@ export default function EditCategoryPage(props: ReadOnly<CategoryPageProps>) {
               <Button variant="outline" onClick={() => setActiveSection("main")} className="text-base-medium" disabled={loading}>
                 Cancel
               </Button>
-              <Button onClick={handleConfirmMoveProducts} className="text-base-medium text-white" disabled={loading || allCategories.map((category) => category.name).includes(newCategoryName)}>
+              <Button onClick={handleConfirmMoveProducts} className="text-base-medium text-white" disabled={loading || allCategories.some((category) => category.name === newCategoryName)}>
                 {loading ? 
                   <>
                     <span>In progress</span>
@@ -547,7 +561,7 @@ export default function EditCategoryPage(props: ReadOnly<CategoryPageProps>) {
                         className="text-base-regular border-gray-300 focus:border-gray-400 rounded-md"
                         disabled={loading}
                       />
-                      {allCategories.map((category) => category.name).includes(newCategoryName) && (
+                      {allCategories.some((category) => category.name === newCategoryName) && (
                         <p className="text-subtle-medium text-yellow-600 mt-1">
                           Category already exists.{" "}
                           <Button variant="link" className="p-0" onClick={() => {setNewCategoryId((allCategories.filter(category => category.name === newCategoryName))[0].categoryId); setNewCategory(false); setNewCategoryName("")}} disabled={loading}>
@@ -561,18 +575,19 @@ export default function EditCategoryPage(props: ReadOnly<CategoryPageProps>) {
                       <Label htmlFor="destinationCategory" className="text-base-semibold mb-2 block">
                         Destination Category
                       </Label>
-                      <Select value={newCategoryId} onValueChange={setNewCategoryId} disabled={loading}>
-                        <SelectTrigger id="destinationCategory" className="text-base-regular">
-                          <SelectValue placeholder="Choose existing category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {allCategories.map((category) => (
-                            <SelectItem key={category.categoryId} value={category.categoryId}>
-                              {category.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <SearchableSelect
+                        isForm={false}
+                        items={allCategories}
+                        placeholder="Choose existing category"
+                        value={newCategoryId}
+                        onValueChange={setNewCategoryId}
+                        renderValue="name"
+                        searchValue="name"
+                        itemValue="categoryId"
+                        className="min-w-[300px] text-base-regular bg-white"
+                        triggerStyle="font-normal mt-1"
+                        disabled={loading}
+                      />
                     </div>
                   )}
                   <Button onClick={() => {setNewCategory(!newCategory); setNewCategoryName("")}} variant="outline" className="text-base-medium w-full">
@@ -601,7 +616,7 @@ export default function EditCategoryPage(props: ReadOnly<CategoryPageProps>) {
                 <Button
                   onClick={confirmDeleteAndMove}
                   className="text-base-medium text-white bg-yellow-500 hover:bg-yellow-600"
-                  disabled={(newCategory ? !newCategoryName: !newCategoryId) || confirmationCategoryName !== categoryName || deleteConfirmation !== "delete" || loading || allCategories.map((category) => category.name).includes(newCategoryName)}
+                  disabled={(newCategory ? !newCategoryName: !newCategoryId) || confirmationCategoryName !== categoryName || deleteConfirmation !== "delete" || loading || allCategories.some((category) => category.name === newCategoryName)}
                 >
                 {loading ? 
                   <>

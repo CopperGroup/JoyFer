@@ -795,6 +795,7 @@ const EditProduct = ({ stringifiedProduct, categories, stringifiedCategory }: { 
                         Категорія товару<span className="text-subtle-medium"> *</span>
                       </FormLabel>
                         <SearchableSelect
+                          isForm={true}
                           items={categories}
                           placeholder="Select category"
                           value={field.value}
@@ -803,6 +804,7 @@ const EditProduct = ({ stringifiedProduct, categories, stringifiedCategory }: { 
                           searchValue="name"
                           itemValue="categoryId"
                           className="min-w-[300px] text-base-regular bg-white"
+                          triggerStyle="text-[13px] text-gray-700 font-normal bg-neutral-100"
                         />
                       <FormMessage />
                     </FormItem>
