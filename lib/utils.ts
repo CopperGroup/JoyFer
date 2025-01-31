@@ -331,3 +331,37 @@ export function getTopProductsBySales(products: ProductType[], topN = 3) {
   
   return sortedProducts;
 }
+
+export function generateLongPassword(length: number = 32, options?: { 
+  uppercase?: boolean, 
+  lowercase?: boolean, 
+  numbers?: boolean, 
+  symbols?: boolean 
+}): string {
+  
+  const defaultOptions = { uppercase: true, lowercase: true, numbers: true, symbols: true };
+  const finalOptions = { ...defaultOptions, ...options };
+
+  const charSets = {
+      uppercase: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+      lowercase: "abcdefghijklmnopqrstuvwxyz",
+      numbers: "0123456789",
+      symbols: "!@#$%^&*()-_=+[]{}|;:,.<>?/~"
+  };
+
+  let validChars = "";
+  if (finalOptions.uppercase) validChars += charSets.uppercase;
+  if (finalOptions.lowercase) validChars += charSets.lowercase;
+  if (finalOptions.numbers) validChars += charSets.numbers;
+  if (finalOptions.symbols) validChars += charSets.symbols;
+
+  if (!validChars) throw new Error("At least one character type must be enabled!");
+
+  let password = "";
+  for (let i = 0; i < length; i++) {
+      const randomIndex = Math.floor(Math.random() * validChars.length);
+      password += validChars[randomIndex];
+  }
+
+  return password;
+}

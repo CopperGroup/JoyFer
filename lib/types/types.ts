@@ -139,3 +139,34 @@ export type CreateUrlParams = {
     isFetched: boolean
     category:string
 }
+
+export interface OrderRef {
+    order: string;
+    createdAt: Date;
+}
+  
+export interface UserType {
+    _id: string;
+    username?: string;
+    name?: string;
+    surname?: string;
+    email: string;
+    phoneNumber?: string;
+    password: string;
+    orders: OrderRef[];
+    totalOrders: number;
+    favourite: string[];
+    discounts: string[];
+    role: "User" | "Admin";
+    selfCreated: boolean;
+    region?: string;
+    city?: string;
+    postalCode?: string;
+    street?: string;
+    isVerified: boolean;
+    forgotPasswordToken?: string;
+    forgotPasswordTokenExpiry?: Date;
+    verifyToken?: string;
+    verifyTokenExpiry?: Date;
+    likes: string[];
+}

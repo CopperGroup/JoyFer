@@ -8,6 +8,7 @@ import { signIn } from "next-auth/react";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { TransitionLink } from "@/components/interface/TransitionLink";
+import { fetchUserByEmail } from "@/lib/actions/user.actions";
 
 export default function LoginPage() {
 
@@ -34,22 +35,32 @@ export default function LoginPage() {
     
     e.preventDefault();
 
-    try {
-      const res = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      });
+    const result = await fetchUserByEmail({email}, "json")
 
-      if (res?.error) {
-        setError("Неправильне ім'я або пароль");
-        return;
+    const user = JSON.parse(result)
+    console.log(user);
+
+    if(user) {
+      if(!user.selfCreated) {
+          try {
+            const res = await signIn("credentials", {
+              email,
+              password,
+              redirect: false,
+            });
+      
+            if (res?.error) {
+              setError("Неправильне ім'я або пароль");
+              return;
+            }
+      
+            router.replace("/");
+          } catch (error) {
+            console.log(error);
+          }
       }
-
-      router.replace("/");
-    } catch (error) {
-      console.log(error);
     }
+    router.push("/signup")
   };
 
   //for button
@@ -112,7 +123,7 @@ export default function LoginPage() {
             </div>
           </div>
         </div>
-        <div className="relative w-4/5 h-full flex justify-center items-center rounded-l-[80px] overflow-hidden max-[1010px]:flex-col max-[1010px]:w-full max-[1010px]:rounded-none" style={{ backgroundImage: `url(/assets/loginbackground.jpg)`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+        <div className="relative w-4/5 h-full flex justify-center items-center  overflow-hidden max-[1010px]:flex-col max-[1010px]:w-full max-[1010px]:rounded-none" style={{ backgroundImage: `url(/assets/loginbackground.jpg)`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
           <h1 className="text-[56px] font-medium bg-black text-white py-2 px-5 max-[1010px]:text-[48px] max-[390px]:text-[40px]">FO Scandinavia</h1>
           <div className="w-full text-white justify-center items-center px-28 py-5 overflow-y-auto min-[1011px]:hidden max-[600px]:px-16 max-[455px]:px-12 max-[360px]:px-10 max-[340px]:px-7">
             <div className="w-full h-fit flex flex-col flex-1 mb-10">

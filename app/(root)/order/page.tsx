@@ -17,7 +17,7 @@ const Page = async () => {
     }
 
 
-    const user = await fetchUserByEmail(email);
+    const user = await fetchUserByEmail({email});
 
   return (
     <section className="flex flex-row w-full justify-between max-lg:flex-col max-[425px]:-mt-24">

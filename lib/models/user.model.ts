@@ -53,13 +53,17 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: 'User',
     },
+    selfCreated: {
+        type: Boolean,
+        default: false
+    },
     region: String,
     city: String,
     postalCode: String,
     street: String,
     isVerfied: {
         type: Boolean,
-        default: false,
+        default: true,
     },
     forgotPasswordToken: String,
     forgotPasswordTokenExpiry: Date,

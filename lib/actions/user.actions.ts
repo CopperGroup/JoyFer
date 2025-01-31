@@ -3,13 +3,22 @@
 import User from "../models/user.model"
 import { connectToDB } from "@/lib/mongoose"
 import clearCache from "./cache";
+import { UserType } from "../types/types";
+import { generateLongPassword } from "../utils";
 
-export async function createUser({ username, email, password }: { username: string, email: string, password: string }) {
+type CreateUserParams = {
+    username: string, 
+    email: string,
+    password: string
+}
+
+export async function createUser({ username, email, password }: CreateUserParams) {
     try {
         const newUser = await User.create({
             username,
             email,
-            password
+            password,
+            selfCreated: false
         })
 
         clearCache("createUser")
@@ -20,15 +29,76 @@ export async function createUser({ username, email, password }: { username: stri
     }
 }
 
-export async function fetchUserByEmail(email: string){
-    try {
-        connectToDB()
-        const currentUser = User.findOne({ email: email}).select("_id username email orders favourite cart discounts role isVerified name phoneNumber surname likes totalOrders")
+export async function createuserByMyself(params: { name: string, email: string, surname?: string, phoneNumber?: string }): Promise<UserType>;
+export async function createuserByMyself(params: { name: string, email: string, surname?: string, phoneNumber?: string }, type: 'json'): Promise<string>;
 
-        return currentUser
-    } catch (error:any) {
-        throw new Error(`Error getting current user ${error.message}`)
+export async function createuserByMyself(params: { name: string, email: string, surname?: string, phoneNumber?: string }, type?: 'json') {
+   try {
+    const newUser = await User.create({
+        name: params.name,
+        email: params.email,
+        password: generateLongPassword(),
+        surname: params.surname || "",
+        phoneNumber: params.phoneNumber || "",
+        selfCreated: true
+    })
+
+    console.log(newUser)
+    clearCache("createUser")
+
+    if(type === 'json'){
+      return JSON.stringify(newUser)
+    } else {
+      return newUser
     }
+
+   } catch (error: any) {
+     throw new Error(`${error.message}`)
+   }
+}
+
+export async function populateSelfCreatedUser(params: CreateUserParams): Promise<UserType>;
+export async function populateSelfCreatedUser(params: CreateUserParams, type: 'json'): Promise<string>;
+
+export async function populateSelfCreatedUser(params: CreateUserParams, type?: 'json') {
+   try {
+
+    const existingUser = await User.findOneAndUpdate(
+        { email: params.email },
+        { $set: { username: params.username, password: params.password, selfCreated: false } },
+        { new: true, runValidators: true }
+    ).select("-password");
+
+    clearCache("createUser")
+    if(type === 'json'){
+      return JSON.stringify(existingUser)
+    } else {
+      return existingUser
+    }
+   } catch (error: any) {
+     throw new Error(`${error.message}`)
+   }
+}
+type FetchUserByEmailparams = {
+   email: string
+}
+
+export async function fetchUserByEmail(params: FetchUserByEmailparams): Promise<UserType>;
+export async function fetchUserByEmail(params: FetchUserByEmailparams, type: 'json'): Promise<string>;
+
+export async function fetchUserByEmail(params: FetchUserByEmailparams, type?: 'json') {
+   try {
+        connectToDB()
+        const currentUser = await User.findOne({ email: params.email}).select("-password")
+
+    if(type === 'json'){
+      return JSON.stringify(currentUser)
+    } else {
+      return currentUser
+    }
+   } catch (error: any) {
+     throw new Error(`${error.message}`)
+   }
 }
 
 export async function checkForAdmin(email: string){
