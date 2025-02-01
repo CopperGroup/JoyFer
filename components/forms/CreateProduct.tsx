@@ -29,6 +29,8 @@ import { removeAllButOne, removeExtraLeadingCharacters } from "@/lib/utils";
 import { getCategoriesNamesAndIds, updateCategories } from "@/lib/actions/categories.actions";
 import { Store } from "@/constants/store";
 import { SearchableSelect } from "@/components/shared/SearchableSelect"
+import { ProductType } from "@/lib/types/types";
+import { Check, Loader2 } from "lucide-react";
 
 type DiscountType = "percentage" | "digits";
 type UploadingState = "initial" | "uploading" | "success" | "error";
@@ -51,16 +53,7 @@ const CreateProduct = () => {
   const [ categories, setCategories ] = useState<{ name: string, categoryId: string}[]>([]);
   const [ isNewCategory, setIsNewCategory ] = useState<boolean>(false);
 
-  
-  const [ params ] = useState([
-    { name: "Model"},
-    { name: "Width"},
-    { name: "Height"},
-    { name: "Depth"},
-    { name: "Type"},
-    { name: "Color"},
-  ])
-  const paramsNamesUa = ['Назва', 'Ширина', 'Висота', 'Глибина', 'Вид', 'Колір'];
+  const [ creatingState, setCreatingState ] = useState<"Initial" | "Creating" | "Success" | "Error">("Initial")
   
   const handleMouseEnter = (index: number) => {
     setHoveredIndex(index);
@@ -169,32 +162,53 @@ const CreateProduct = () => {
 
   const onSubmit = async (values: z.infer<typeof ProductValidation>) => {
     
-    // console.log(!isNewCategory ? categories.filter(category => category.categoryId === values.category)[0].name : values.category)
+    // console.log(!isNewCategory ? categories.filter(category => category.categoryId === values.category)[0].name : values.category)\
 
-    const result = await createProduct({
-      id: values.id,
-      name: values.name,
-      quantity: parseFloat(values.quantity),
-      images: images,
-      url: values.url ? values.url : "",
-      price: parseFloat(values.price.slice(1)),
-      priceToShow: parseFloat(values.priceToShow.slice(1)),
-      vendor: values.vendor,
-      category: !isNewCategory ? categories.filter(category => category.categoryId === values.category)[0].name : values.category,
-      description: values.description,
-      isAvailable: isChecked,
-      params: values.customParams || [],
-      customParams: values.customParams ? values.customParams : []
-    }, 'json')
+    let createdProduct_id = ""
 
-    const createdProduct = JSON.parse(result);
-
-    await updateCategories([createdProduct], "create");
-
-    if(isChecked) {
-      router.push(`/catalog/${createdProduct._id}`);
+    if(values.price.slice(1) && values.priceToShow.slice(1)) {
+      try {
+        setCreatingState("Creating");
+  
+        const result = await createProduct({
+          id: values.id,
+          name: values.name,
+          quantity: parseFloat(values.quantity),
+          images: images,
+          url: values.url ? values.url : "",
+          price: parseFloat(values.price.slice(1)),
+          priceToShow: parseFloat(values.priceToShow.slice(1)),
+          vendor: values.vendor,
+          category: !isNewCategory ? categories.filter(category => category.categoryId === values.category)[0].name : values.category,
+          description: values.description,
+          isAvailable: isChecked,
+          params: values.customParams || [],
+          customParams: values.customParams ? values.customParams : []
+        }, 'json')
+  
+        const createdProduct = JSON.parse(result);
+    
+        createdProduct_id = createdProduct._id;
+  
+        await updateCategories([createdProduct], "create");
+      
+      } catch(error) {
+        setCreatingState("Error")
+      } finally {
+        setCreatingState("Success")
+  
+        setTimeout(() => setCreatingState("Initial"), 500)
+        
+        if(isChecked) {
+          if(createdProduct_id) {
+            router.push(`/catalog/${createdProduct_id}`);
+          }
+        } else {
+          router.push(`/admin/products`);
+        }
+      }
     } else {
-      router.push(`/admin/products`);
+      setCreatingState("Error")
     }
   }
 
@@ -504,6 +518,18 @@ const CreateProduct = () => {
                         type='text'
                         className="text-small-regular text-gray-700 text-[13px] bg-neutral-100 ml-1 focus-visible:ring-black focus-visible:ring-[1px]"
                         {...field}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                      
+                          if (value === "") {
+                            form.setValue("quantity", "");
+                            return;
+                          }
+
+                          if (/^\d+$/.test(value)) {
+                            form.setValue("quantity", value);
+                          }
+                        }}
                       />
                     </FormControl>
                     <FormMessage className="text-[12px] text-red-500 ml-2" />
@@ -730,7 +756,7 @@ const CreateProduct = () => {
                     render={({ field }) => (
                       <FormItem className='w-full'>
                         <FormLabel className='text-small-medium text-[14px] text-dark-1'>
-                          Назва категоріЇ<span className="text-subtle-medium"> *</span>
+                          Назва категорії<span className="text-subtle-medium"> *</span>
                         </FormLabel>
                         <FormControl>
                           <Input
@@ -845,8 +871,23 @@ const CreateProduct = () => {
             )}
           </div>
           <Button type='submit' className='bg-green-500 hover:bg-green-400' disabled={categories.map((cat) => cat.name).includes(form.getValues('category'))}>
-            Додати товар
+            {["Initial", "Error"].includes(creatingState) &&
+              "Додати товар"
+            }
+            {creatingState === "Creating" && (
+              <>
+                {creatingState}
+                <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+              </>
+            )}
+            {creatingState === "Success" && (
+              <>
+                {creatingState}
+                <Check className="ml-2 h-4 w-4" />
+              </>
+            )}
           </Button>
+          <p className="text-subtle-medium text-red-500">{creatingState === "Error" && "All necessary fields must be filled"}</p>
           <div className="w-full flex justify-end">
             <FormField
               control={form.control}
