@@ -4,12 +4,13 @@ import { ObjectId } from "mongoose";
 import Category from "../models/category.model";
 import Product from "../models/product.model";
 import { connectToDB } from "../mongoose";
-import { ProductType } from "../types/types";
+import { CategoriesParams, ProductType } from "../types/types";
 import clearCache from "./cache";
 import { clearCatalogCache } from "./redis/catalog.actions";
 import { deleteProduct } from "./product.actions";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import Filter from "../models/filter.model";
 
 interface FetchCategoriesPropertiesParams {
   page?: number; // Current page
@@ -138,7 +139,7 @@ export async function updateCategories(
 
     // Clear cache if relevant
     clearCatalogCache();
-    clearCache("updateProduct");
+    clearCache(["updateCategory", "updateProduct"]);
   } catch (error: any) {
     throw new Error(
       `Error updating categories with products: ${error.message}`
@@ -259,7 +260,7 @@ export async function setCategoryDiscount({categoryId, percentage}: {categoryId:
     await category.save();
     // Clear the cache after updating product prices
     await clearCatalogCache();
-    clearCache("updateProduct");
+    clearCache(["updateCategory", "updateProduct"]);
 
   } catch (error: any) {
     throw new Error(`Error changing discount for all the products in the category: ${error.message}`);
@@ -289,7 +290,7 @@ export async function changeCategoryName({ categoryId, newName }: { categoryId: 
 
     await clearCatalogCache();
 
-    clearCache("updateProduct");
+    clearCache(["updateCategory","updateProduct"]);
   } catch (error: any) {
     throw new Error(`Error changing category's name: ${error.message}`);
   }
@@ -343,7 +344,7 @@ export async function moveProductsToCategory({
     await targetCategory.save();
 
     await clearCatalogCache();
-    clearCache("updateProduct");
+    clearCache(["updateCategory", "updateProduct"]);
     revalidatePath(`/admin/categories/edit/${initialCategoryId}`)
   } catch (error: any) {
     throw new Error(`Error moving products to another category: ${error.message}`);
@@ -392,7 +393,7 @@ export async function createNewCategory({ name, products, previousCategoryId }: 
       products: productIds
     })
 
-    clearCache("updateProduct");
+    clearCache(["createCategory", "updateProduct"]);
   } catch (error: any) {
     throw new Error(`Error creating new category: ${error.message}`)
   }
@@ -404,31 +405,42 @@ type DeleteCategoryProps = {
 };
 
 export async function deleteCategory(props: DeleteCategoryProps) {
-    try {
-        await connectToDB();
+  try {
+      await connectToDB();
 
-        const category = await Category.findById(props.categoryId).populate("products");
+      const category = await Category.findById(props.categoryId).populate("products");
 
-        if (!category) {
-            throw new Error("Category not found.");
-        }
+      if (!category) {
+          throw new Error("Category not found.");
+      }
 
-        const productIds: string[] = category.products.map((product: any) => product._id.toString());
+      const productIds: string[] = category.products.map((product: any) => product._id.toString());
 
-        if (props.removeProducts) {
-            for (const productId of productIds) {
-                await deleteProduct({ product_id: productId });
-            }
-        }
-        await Category.findByIdAndDelete(props.categoryId);
+      if (props.removeProducts) {
+          for (const productId of productIds) {
+              await deleteProduct({ product_id: productId });
+          }
+      }
 
-        // Clear cache
-        await clearCatalogCache();
-        clearCache("updateProduct");
-    } catch (error: any) {
-        throw new Error(`Error deleting category: ${error.message}`);
-    }
+      // Exclude category from filter
+      await Filter.updateOne(
+          { "categories.categoryId": props.categoryId },
+          { $pull: { categories: { categoryId: props.categoryId } } }
+      );
+
+      // Delete category
+      await Category.findByIdAndDelete(props.categoryId);
+
+      // Clear cache
+      await clearCatalogCache();
+      clearCache(["deleteCategory", "updateProduct"]);
+
+  } catch (error: any) {
+      throw new Error(`Error deleting category: ${error.message}`);
+  }
 }
+
+
 export async function fetchCategoriesProducts(categoryId: string, type?: 'json') {
   try {
     // Connect to the database
@@ -454,16 +466,8 @@ export async function fetchCategoriesProducts(categoryId: string, type?: 'json')
   }
 }
 
-interface CategoryParams {
-  name: string;
-  totalProducts: number;
-  params: {
-    name: string,
-    totalProducts: number
-  };
-}
 
-export async function fetchCategoriesParams(): Promise<CategoryParams>;
+export async function fetchCategoriesParams(): Promise<CategoriesParams>;
 export async function fetchCategoriesParams(type: 'json'): Promise<string>;
 
 export async function fetchCategoriesParams(type?: 'json') {
@@ -489,7 +493,7 @@ export async function fetchCategoriesParams(type?: 'json') {
           acc[category._id] = {
               name: category.name,
               totalProducts,
-              params: Object.entries(paramCounts).map(([name, totalProducts]) => ({ name, totalProducts }))
+              params: Object.entries(paramCounts).map(([name, totalProducts]) => ({ name, totalProducts, type: ""}))
           };
           
           return acc;

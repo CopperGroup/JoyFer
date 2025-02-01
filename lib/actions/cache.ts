@@ -4,26 +4,29 @@ import { revalidatePath } from "next/cache";
 
 const paths = {
     categories: "/admin/categories",
+    createProduct: "/admin/createProduct",
     products: "/admin/products",
     dashboard: "/admin/dashboard",
     statistics: "/admin/statistics",
     orders: "/admin/Orders",
     payments: "/admin/payments",
-    clients: "/admin/clients"
+    clients: "/admin/clients",
+    filter: "/admin/filter",
+    pixel: "/admin/pixel"
 } as const
 
 const adminPaths = [
     {
         name: 'createProduct',
-        values: [paths.categories, paths.products]
+        values: [paths.categories, paths.products, paths.filter]
     },
     {
         name: 'updateProduct',
-        values: [paths.categories, paths.products, paths.dashboard, paths.statistics]
+        values: [paths.categories, paths.products, paths.dashboard, paths.statistics, paths.filter]
     },
     {
         name: 'deleteProduct',
-        values: [paths.categories, paths.products, paths.dashboard, paths.statistics]
+        values: [paths.categories, paths.products, paths.dashboard, paths.statistics, paths.filter]
     },
     {
         name: 'createOrder',
@@ -41,11 +44,41 @@ const adminPaths = [
         name: "addToCart",
         values: [paths.dashboard, paths.statistics]
     },
+    {
+        name: "createCategory",
+        values: [paths.categories, paths.createProduct, paths.filter]
+    },
+    {
+        name: "updateCategory",
+        values: [paths.categories, paths.createProduct, paths.filter, paths.statistics, paths.dashboard, paths.products]
+    }, 
+    {
+        name: "deleteCategory",
+        values: [paths.categories, paths.createProduct, paths.filter, paths.statistics, paths.dashboard, paths.products]
+    },
+    {
+        name: "createPixel",
+        values: [paths.pixel]
+    },
+    {
+        name: "updatePixel",
+        values: [paths.pixel]
+    },
+    {
+        name: "deletePixel",
+        values: [paths.pixel]
+    }
 ] as const;
 
-export default async function clearCache(functionName: typeof adminPaths[number]["name"]) {
-    const path = adminPaths.filter(({name, values}) => name == functionName)
+export default async function clearCache(functionNames: typeof adminPaths[number]["name"] | (typeof adminPaths[number]["name"])[]) {
+    const functionNamesArray = Array.isArray(functionNames) ? functionNames : [functionNames];
 
-    path[0].values.forEach((value: string) => {revalidatePath(value)})
+    functionNamesArray.forEach(functionName => {
+        const path = adminPaths.filter(({ name, values }) => name === functionName);
 
+        path[0]?.values.forEach((value: string) => {
+            revalidatePath(value);
+        });
+    });
 }
+

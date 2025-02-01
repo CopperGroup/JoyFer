@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import Pixel from "../models/pixel.model";
 import { connectToDB } from "../mongoose";
 import { PixelData } from "../types/types";
+import clearCache from "./cache";
 
 export async function createPixel({ type, name, id }: { type: "Meta" | "TikTok", name: string, id: string }) {
   try {
@@ -33,7 +34,7 @@ export async function createPixel({ type, name, id }: { type: "Meta" | "TikTok",
     
     //console.log(createdPixel);
 
-    revalidatePath("/admin/pixel");
+    clearCache("createPixel")
   } catch (error: any) {
     throw new Error(`Error creating pixel: ${error.message}`)
   }
@@ -60,7 +61,7 @@ export async function deletePixel({ _id }: { _id: string }) {
 
     revalidatePath("/admin/pixel");
 
-
+    clearCache("deletePixel")
   } catch (error: any) {
     throw new Error(`Error deleting pixel: ${error.message}`)
   }
@@ -95,7 +96,7 @@ export async function activatePixel({ _id, type }: { _id: string, type: PixelDat
         await pixel.save();
     }
 
-    revalidatePath("/admin/pixel");
+    clearCache("updatePixel")
 } catch (error: any) {
     throw new Error(`Error activating/disactivating pixel: ${error.message}`)
   }
@@ -152,15 +153,14 @@ export async function fetchPixel({ _id }: { _id: string }) {
 export async function updatePixelEvents({ _id, events }: { _id: string, events: Record<string, boolean>}): Promise<{ success: boolean; message?: string }> {
   try {
     connectToDB();
-
-    console.log(events);
-
+    
     const pixel = await Pixel.findByIdAndUpdate(_id, { events: events });
 
     if (!pixel) {
       return { success: false, message: "Update failed, pixel not found" };
     }
     
+    clearCache("updatePixel")
     return { success: true, message: "Pixel events updated successfully." };
   } catch (error: any) {
 

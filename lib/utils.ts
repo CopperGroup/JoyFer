@@ -1,6 +1,6 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
-import { ProductType, TypeScriptPrimitiveTypes } from "./types/types";
+import { CategoriesParams, FilterType, ProductType, TypeScriptPrimitiveTypes } from "./types/types";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -365,3 +365,35 @@ export function generateLongPassword(length: number = 32, options?: {
 
   return password;
 }
+
+
+export function mergeFilterAndCategories(filter: FilterType, categories: CategoriesParams): CategoriesParams {
+  const mergedCategories: CategoriesParams = {};
+
+  Object.entries(categories).forEach(([categoryId, categoryData]) => {
+    // Find matching category in filter using categoryId from schema
+    const filterCategory = filter.categories.find(cat => cat.categoryId.toString() === categoryId);
+
+    // Merge params
+    const mergedParams = categoryData.params.map(param => {
+      // Check if param exists in the filter
+      const activeParam = filterCategory?.params.find(fp => fp.name === param.name);
+
+      return {
+        name: param.name,
+        totalProducts: param.totalProducts,
+        type: activeParam ? activeParam.type : "", // Use active type if available, else set empty
+      };
+    });
+
+    // Construct merged category data
+    mergedCategories[categoryId] = {
+      name: categoryData.name,
+      totalProducts: categoryData.totalProducts,
+      params: mergedParams,
+    };
+  });
+
+  return mergedCategories;
+}
+

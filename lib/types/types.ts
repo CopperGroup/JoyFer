@@ -170,3 +170,49 @@ export interface UserType {
     verifyTokenExpiry?: Date;
     likes: string[];
 }
+
+type Param = {
+  name: string;
+  totalProducts: number;
+  type: string;
+};
+
+type CategoryData = {
+  name: string;
+  totalProducts: number;
+  params: Record<string, Param>;
+};
+
+export type CreateFilterProps = Record<string, {
+    categoryName: string;
+    totalProducts: number;
+    params: Record<string, Param>;
+  }>;
+
+// Output Data Types
+
+type FilterCategory = {
+  categoryId: string;
+  params: Param[];
+};
+
+export type FilterType = {
+    _id: string,
+    categories: FilterCategory[]
+}
+
+interface ParamType {
+  name: string
+  totalProducts: number
+  type: string
+}
+
+interface CategoryDataParams {
+  name: string
+  totalProducts: number
+  params: ParamType[]
+}
+
+export type CategoriesParams =  {
+  [key: string]: CategoryDataParams
+}
