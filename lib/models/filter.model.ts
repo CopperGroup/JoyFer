@@ -5,7 +5,7 @@ const filterSchema = new mongoose.Schema({
         {
             categoryId: {
                 type: mongoose.Schema.Types.ObjectId,
-                ref: "Categoty"
+                ref: "Category"
             },
             params: [
                 {
@@ -21,7 +21,11 @@ const filterSchema = new mongoose.Schema({
                 }
             ]
         }
-    ]
+    ],
+    delay: {
+        type: Number,
+        default: 200
+    }
 })
 
 const Filter = mongoose.models.Filter || mongoose.model("Filter", filterSchema);

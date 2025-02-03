@@ -1,7 +1,7 @@
 'use client'
 
 import React, { ChangeEvent, Dispatch, SetStateAction, useState } from 'react'
-import { capitalize, cn, createSearchString } from '@/lib/utils'
+import { capitalize, cn, createSearchString, extractNumber, sleep } from '@/lib/utils'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useRouter, useSearchParams } from "next/navigation"
 import { useDebounce } from 'use-debounce'
@@ -21,32 +21,22 @@ import { Slider } from '../ui/slider'
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group'
 import { Label } from '../ui/label'
 import ClearFilterButton from '../interface/ClearFilterButton'
+import { CategoryType } from '@/lib/types/types'
 
 interface Props {
   maxPrice:number,
   minPrice:number, 
-  maxMin: {
-    minWidth: number;
-    maxWidth: number;
-    minHeight: number;
-    maxHeight: number;
-    minDepth: number;
-    maxDepth: number;
-  }, 
+  categories: { name: string, categoryId: string, totalProducts: number }[],
   checkParams: {
     vendors: string[], 
-    series: string[], 
-    colors: string[], 
-    types: string[], 
-    categories: string[],
   },
+  unitParams: Record<string, { totalProducts: number; type: string; min: number; max: number }>;
+  selectParams: Record<string, { totalProducts: number, type: string, values: { value: string, valueTotalProducts: number }[] }>;
   category:any, 
+  delay: number,
   counts: {
     categoriesCount: { [key: string]: number },
     vendorsCount: { [key: string]: number },
-    typesCount: { [key: string]: number },
-    seriesCount: { [key: string]: number },
-    colorsCount: { [key: string]: number}
   } 
 }
 
@@ -54,54 +44,28 @@ const params = ["width", "height", "depth"] as const;
 const paramsUa = { width: "Ширина", height: "Висота", depth: "Глибина" };
 type ParamsName = typeof params[number];
 
-const checkParamsNames = ["categories", "vendors", "series", "colors", "types"] as const;
-const checkParamsNamesUa = { categories: "Категорії", vendors: "Виробник", series: "Серія", colors: "Колір", types: "Вид" };
+const checkParamsNames = ["vendors" ] as const;
+const checkParamsNamesUa = {vendors: "Виробник"};
 type CheckParams = typeof checkParamsNames[number];
 
-type FilterType = {
+type PageFilterType = {
   page: string,
   price: [number, number],
-  width: {
-    min: number,
-    max: number
-  },
-  height: {
-    min: number,
-    max: number
-  },
-  depth: {
-    min: number,
-    max: number
-  },
-  categories: string[]
+  categories: string[],
   vendors: string[],
-  series: string[],
-  colors: string[],
-  types: string[]
+  selectParamsValues: string[],
+  unitParamsValues: string[]
 }
 
-const Filter = ({ maxPrice, minPrice, maxMin, checkParams, category, counts }: Props) => {
+const Filter = ({ maxPrice, minPrice, categories, checkParams, selectParams, unitParams, category, delay, counts }: Props) => {
   const {catalogData, setCatalogData} = useAppContext();
-  const [filter, setFilter] = useState<FilterType>({
+  const [filter, setFilter] = useState<PageFilterType>({
     page: "1",
     price:[minPrice, maxPrice],
-    width: {
-        min: maxMin.minWidth, 
-        max: maxMin.maxWidth,
-    },
-    height: {
-      min: maxMin.minHeight, 
-      max: maxMin.maxHeight,
-    },
-    depth: {
-      min: maxMin.minDepth, 
-      max: maxMin.maxDepth,
-    },
     categories: [],
     vendors:[],
-    series:[],
-    colors:[],
-    types:[]
+    selectParamsValues: [],
+    unitParamsValues: []
   })
   const [screenWidth, setScreenWidth] = useState(0);
   const filterButtonRef = useRef<HTMLButtonElement>(null);
@@ -126,50 +90,42 @@ const Filter = ({ maxPrice, minPrice, maxMin, checkParams, category, counts }: P
         parseFloat(searchParams.minPrice || minPrice.toString()),
         parseFloat(searchParams.maxPrice || maxPrice.toString()),
       ],
-      width: {
-        min: parseFloat(searchParams.minWidth || maxMin.minWidth.toString()),
-        max: parseFloat(searchParams.maxWidth || maxMin.maxWidth.toString()),
-      },
-      height: {
-        min: parseFloat(searchParams.minHeight || maxMin.minHeight.toString()),
-        max: parseFloat(searchParams.maxHeight || maxMin.maxHeight.toString()),
-      },
-      depth: {
-        min: parseFloat(searchParams.minDepth || maxMin.minDepth.toString()),
-        max: parseFloat(searchParams.maxDepth || maxMin.maxDepth.toString()),
-      },
-      categories: searchParams.category ? searchParams.category.split(","): [],
-      colors: searchParams.color ? searchParams.color.split(',') : [],
-      types: searchParams.type ? searchParams.type.split(',') : [],
+      categories: searchParams.categories ? searchParams.categories.split(","): [],
       vendors: searchParams.vendor ? searchParams.vendor.split(',') : [],
-      series: searchParams.series ? searchParams.series.split(',') : [],
+      selectParamsValues: searchParams.categories ? (searchParams.selectParams ? searchParams.selectParams.split(',') : []) : [],
+      unitParamsValues: searchParams.categories ? (searchParams.unitParams ? searchParams.unitParams.split(',') : []) : []
     }))
     
     setSort(searchParams.sort || "default")
-  }, [search, minPrice, maxPrice, maxMin, checkParams, category, counts]);
+  }, [search, minPrice, maxPrice, checkParams, categories, counts]);
   
 
   useEffect(() => {
+
+    const startSearch = async () => {
+
+      console.log(delay);
+      await sleep(delay);
+
+      const searchString = createSearchString({
+        pNumber: filter.page, // Reset to page 1 on filter change
+        sort,
+        categories: filter.categories,
+        vendors: filter.vendors,
+        search: catalogData.search,
+        price: filter.price,
+        category,
+        minPrice,
+        maxPrice,
+        selectParamsValues: filter.categories.length > 0 ? filter.selectParamsValues : [],
+        unitParamsValues: filter.categories.length > 0 ? filter.unitParamsValues: []
+        // maxMin,
+      });
+      router.push(`/catalog?${searchString}`);
+    }
+
+    startSearch()
     // Handle filter changes, reset to page 1
-    const searchString = createSearchString({
-      pNumber: filter.page, // Reset to page 1 on filter change
-      sort,
-      categories: filter.categories,
-      colors: filter.colors,
-      types: filter.types,
-      vendors: filter.vendors,
-      series: filter.series,
-      search: catalogData.search,
-      price: filter.price,
-      width: filter.width,
-      height: filter.height,
-      depth: filter.depth,
-      category,
-      minPrice,
-      maxPrice,
-      maxMin,
-    });
-    router.push(`/catalog?${searchString}`);
   }, [debounce, sort, catalogData.search, category]);  
   
   useEffect(() => {
@@ -180,6 +136,18 @@ const Filter = ({ maxPrice, minPrice, maxMin, checkParams, category, counts }: P
 
   const handleChange = (newValue: [number, number]) => {
     setFilter({...filter, page: "1", price:newValue})
+  };
+
+  const handleCategoriesCheckboxChange = (categoryId: string) => {
+    const isChecked = filter.categories.includes(categoryId);
+
+    setFilter((prevFilter):any => {
+      if (!isChecked) {
+        return {...prevFilter, page: "1", categories: [...prevFilter.categories, categoryId]};
+      } else {
+        return {...prevFilter, page: "1", categories: prevFilter.categories.filter(id => id !== categoryId)};
+      }
+    });
   };
 
   const handleCheckboxChange = (checkParam: CheckParams, value: string) => {
@@ -193,6 +161,78 @@ const Filter = ({ maxPrice, minPrice, maxMin, checkParams, category, counts }: P
       }
     });
   };
+
+  const handleSelectParamChange = (paramName: string, value: string) => {
+    setFilter((prevFilter) => {
+      // Find if the param already exists in the selectParamsValues
+      const existingEntry = prevFilter.selectParamsValues.find((entry) =>
+        entry.startsWith(`${paramName}--`)
+      );
+  
+      let updatedParams = [...prevFilter.selectParamsValues];
+  
+      if (existingEntry) {
+        // Remove the `${paramName}--` prefix and split the values by `__`
+        const values = existingEntry.replace(`${paramName}--`, "").split("__");
+  
+        if (values.includes(value)) {
+          // Remove the value from the array if it's already selected
+          const updatedValues = values.filter((v) => v !== value);
+  
+          if (updatedValues.length > 0) {
+            // Update the selectParamsValues with the modified values
+            updatedParams = updatedParams.map((entry) =>
+              entry.startsWith(`${paramName}--`) ? `${paramName}--${updatedValues.join("__")}` : entry
+            );
+          } else {
+            // If no values are left, remove this param completely
+            updatedParams = updatedParams.filter((entry) => !entry.startsWith(`${paramName}--`));
+          }
+        } else {
+          // Add new value to the list if not already selected
+          updatedParams = updatedParams.map((entry) =>
+            entry.startsWith(`${paramName}--`) ? `${paramName}--${[...values, value].join("__")}` : entry
+          );
+        }
+      } else {
+        // If the param doesn't exist in the list, add it
+        updatedParams.push(`${paramName}--${value}`);
+      }
+  
+      return { ...prevFilter, page: "1", selectParamsValues: updatedParams };
+    });
+  };
+  
+  const handleUnitParamChange = async (paramName: string, min: number, max: number) => {
+    setFilter((prevFilter) => {
+      const { unitParamsValues } = prevFilter;
+      const existingEntryIndex = unitParamsValues.findIndex((entry) =>
+        entry.startsWith(`${paramName}--`)
+      );
+  
+      const paramMin = unitParams[paramName]?.min;
+      const paramMax = unitParams[paramName]?.max;
+  
+      let updatedParams = [...unitParamsValues];
+  
+      if (min === paramMin && max === paramMax) {
+        // Remove the param from the array if it matches the full range
+        updatedParams = updatedParams.filter((entry) => !entry.startsWith(`${paramName}--`));
+      } else {
+        const newEntry = `${paramName}--${min}m${max}`;
+        if (existingEntryIndex !== -1) {
+          // Replace the existing entry
+          updatedParams[existingEntryIndex] = newEntry;
+        } else {
+          // Add new entry
+          updatedParams.push(newEntry);
+        }
+      }
+  
+      return { ...prevFilter, page: "1", unitParamsValues: updatedParams };
+    });
+  };
+  
 
   const divRef = useRef<HTMLDivElement>(null);
   const [bodyOverflow, setBodyOverflow] = useState(false);
@@ -235,8 +275,7 @@ const Filter = ({ maxPrice, minPrice, maxMin, checkParams, category, counts }: P
           <div className="w-full h-fit flex justify-between"> 
             <h2 className='text-[28px]'>Фільтр</h2>
             <Button onClick={(e)=>toggleOverflow(e)} className="duration-300 size-12 rounded-full md:hidden transition-all min-[361px]:hidden"><i className="fa fa-filter pointer-events-none"></i></Button>
-          </div>
-            
+          </div>            
             <div className='mt-4 pb-4 w-full'>
               <Accordion type="single" collapsible className="w-full" defaultValue="item-1">
                 <AccordionItem value="item-1">
@@ -289,6 +328,35 @@ const Filter = ({ maxPrice, minPrice, maxMin, checkParams, category, counts }: P
               </Accordion>
             </div>
 
+            <div className='mt-4 pb-4 w-full'>
+                <Accordion type="single" collapsible className="w-full">
+                  <AccordionItem value="item-1">
+                    <AccordionTrigger className='text-[18px] bg-zinc-100 rounded-3xl font-medium py-[6px] px-3'>Категорії</AccordionTrigger>
+                    <AccordionContent className="pl-3 max-h-[300px] overflow-y-auto">
+                      {categories.map((cat, index)=>(
+                        <div key={index} className="w-full h-fit flex justify-between items-center">
+                        <div className="flex items-center space-x-2 mt-4">
+                          <Checkbox 
+                           id={cat.categoryId} 
+                           className="size-5 rounded-md border-neutral-600 data-[state=checked]:bg-black data-[state=checked]:text-white"
+                           onCheckedChange={()=> handleCategoriesCheckboxChange(cat.categoryId)} 
+                           checked={filter.categories.includes(cat.categoryId)}
+                          />
+                          <label
+                            htmlFor={cat.categoryId}
+                            className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          >
+                            {cat.name}
+                          </label>
+                          </div>
+                          <p className="w-fit text-small-medium text-blue drop-shadow-xl mt-3 px-4">{cat.totalProducts}</p>
+                        </div>
+                      ))}
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              </div>
+
             {checkParamsNames.map((param) => (
               <div key={param} className='mt-4 pb-4 w-full'>
                 <Accordion type="single" collapsible className="w-full">
@@ -320,46 +388,90 @@ const Filter = ({ maxPrice, minPrice, maxMin, checkParams, category, counts }: P
               </div>
             ))}
 
-          {params.map((param, index) => {
-            const capitalizedParam = capitalize(param);
+            {selectParams && 
+            <>
+              {Object.entries(selectParams).map(([paramName, paramData]) => (
+                <div key={paramName} className='mt-4 pb-4 w-full'>
+                  <Accordion type="single" collapsible className="w-full">
+                    <AccordionItem value={paramName}>
+                      <AccordionTrigger className='text-[18px] bg-zinc-100 rounded-3xl font-medium py-[6px] px-3'>
+                        {paramName}
+                      </AccordionTrigger>
+                      <AccordionContent className="pl-3 max-h-[300px] overflow-y-auto">
+                        {paramData.values.map(({value, valueTotalProducts}, index) => {
+                          // Find the existing entry for the param in selectParamsValues
+                          const existingEntry = filter.selectParamsValues.find((entry) =>
+                            entry.startsWith(`${paramName}--`)
+                          );
 
-            return (
-              <div className='mt-4 pb-4 w-full' key={index}>
-                <Accordion type="single" collapsible className="w-full" defaultValue="item-1">
-                  <AccordionItem value="item-1">
-                    <AccordionTrigger className="text-[18px] bg-zinc-100 rounded-3xl font-medium py-[6px] px-3">{paramsUa[param]}</AccordionTrigger>
-                    <AccordionContent className="flex flex-col items-center shrink-0 px-3">
-                      <Slider
-                          value={Object.values(filter[param])}
-                          onValueChange={([min,max])=>{setFilter({...filter, [param]:{ min, max }})}}
-                          max={maxMin[("max" + capitalizedParam) as keyof typeof maxMin]}
-                          min={maxMin[("min" + capitalizedParam) as keyof typeof maxMin]}
-                          step={1}
-                          className={cn("w-full mt-4")}
-                        />
-                        <div className='flex justify-between mt-7 w-full'>
-                          <FilterInput
-                          paramName={param}
-                          setting="min"
-                          maxMin={maxMin}
-                          filter={filter}
-                          setFilter={setFilter}
-                          />
-                          <FilterInput
-                          paramName={param}
-                          setting="max"
-                          maxMin={maxMin}
-                          filter={filter}
-                          setFilter={setFilter}
-                          />
-                        </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
-              </div>
-            )
-          })}
+                          // Initialize isChecked as false
+                          let isChecked = false;
 
+                          if (existingEntry) {
+                            // Remove `${paramName}--` and split by `__`
+                            const values = existingEntry.replace(`${paramName}--`, "").split("__");
+                            // Check if the value is in the list of selected values
+                            isChecked = values.includes(value);
+                          }
+
+                          return (
+                            <div key={index} className="w-full h-fit flex justify-between items-center">
+                              <div className="flex items-center space-x-2 mt-4">
+                                <Checkbox
+                                  id={value}
+                                  className="size-5 rounded-md border-neutral-600 data-[state=checked]:bg-black data-[state=checked]:text-white"
+                                  onCheckedChange={() => handleSelectParamChange(paramName, value)}
+                                  checked={isChecked}
+                                />
+                                <label
+                                  htmlFor={value}
+                                  className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                >
+                                  {value}
+                                </label>
+                              </div>
+                              <p className="w-fit text-small-medium text-blue drop-shadow-xl mt-3 px-4">
+                                {valueTotalProducts}
+                              </p>
+                            </div>
+                          );
+                        })}
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                </div>
+              ))}
+            </>
+          }
+          
+          {unitParams && 
+            <>
+              {Object.entries(unitParams).map(([paramName, { min, max }]) => {
+                const currentEntry = filter.unitParamsValues.find((entry) => entry.startsWith(`${paramName}--`));
+
+                let currentMin = min;
+                let currentMax = max;
+
+                if (currentEntry) {
+                  const [, range] = currentEntry.split("--");
+                  [currentMin, currentMax] = range.split("m").map(Number);
+                }
+
+                return (
+                  <UnitSlider 
+                    key={paramName}
+                    paramName={paramName}
+                    currentMin={currentMin}
+                    currentMax={currentMax}
+                    minBoundary={min}
+                    maxBoundary={max}
+                    handleUnitParamChange={handleUnitParamChange}
+                  />
+                  );
+              })}
+
+            </>
+          }
           <div className="pb-5">
             <ClearFilterButton />
           </div>
@@ -371,53 +483,111 @@ const Filter = ({ maxPrice, minPrice, maxMin, checkParams, category, counts }: P
 
 export default Filter
 
-const FilterInput = ({ paramName, setting, maxMin, filter, setFilter }: { paramName: ParamsName, setting: "min" | "max", maxMin: Props["maxMin"], filter: FilterType, setFilter: Dispatch<SetStateAction<FilterType>>}) => {
-  const [inputValue, setInputValue] = useState<string>(filter[paramName][setting].toString());
+const UnitSlider = ({ paramName, currentMin, currentMax, minBoundary, maxBoundary, handleUnitParamChange}: {
+  paramName: string, 
+  currentMin: number,
+  currentMax: number,
+  minBoundary: number,
+  maxBoundary: number,
+  handleUnitParamChange: ( paramName: string, min: number, max: number) => void;
+}) => {
 
-  // Track the input change in local state
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setInputValue(e.target.value);
-  };
+  const [sliderValues, setSliderValues] = useState<{ min: number, max: number}>({ min: currentMin, max: currentMax});
+
+  const handleCommit = () => {
+    handleUnitParamChange(paramName, sliderValues.min, sliderValues.max)
+  }
+  return (
+    <div className="mt-4 pb-4 w-full" key={paramName}>
+      <Accordion type="single" collapsible className="w-full" defaultValue="item-1">
+        <AccordionItem value="item-1">
+          <AccordionTrigger className="text-[18px] bg-zinc-100 rounded-3xl font-medium py-[6px] px-3">
+            {paramName}
+          </AccordionTrigger>
+          <AccordionContent className="flex flex-col items-center shrink-0 px-3">
+            <Slider
+              value={[sliderValues.min, sliderValues.max]}
+              onValueChange={([newMin, newMax]) => setSliderValues({ min: newMin, max: newMax })}
+              onValueCommit={handleCommit}
+              max={maxBoundary}
+              min={minBoundary}
+              step={1}
+              className="w-full mt-4"
+            />
+
+            <div className="flex justify-between mt-7 w-full">
+              <FilterInput
+                paramName={paramName}
+                setting="min"
+                currentMin={sliderValues.min}
+                currentMax={sliderValues.max}
+                minBoundary={minBoundary}
+                maxBoundary={maxBoundary}
+                handleUnitParamChange={handleUnitParamChange}
+              />
+              <FilterInput
+                paramName={paramName}
+                setting="max"
+                currentMin={sliderValues.min}
+                currentMax={sliderValues.max}
+                minBoundary={minBoundary}
+                maxBoundary={maxBoundary}
+                handleUnitParamChange={handleUnitParamChange}
+              />
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+    </div>
+  )
+}
+
+const FilterInput = ({ paramName, setting, currentMin, currentMax, minBoundary, maxBoundary, handleUnitParamChange}: { 
+  paramName: string, 
+  setting: "min" | "max", 
+  currentMin: number,
+  currentMax: number,
+  minBoundary: number, 
+  maxBoundary: number,
+  handleUnitParamChange: ( paramName: string, min: number, max: number) => void;
+}) => {
+  const [inputValue, setInputValue] = useState<string>(setting === "min" ? currentMin.toString() : currentMax.toString());
 
   useEffect(() => {
-    setInputValue(filter[paramName][setting].toString());
-  }, [filter[paramName][setting]]);
+    setInputValue(setting === "min" ? currentMin.toString() : currentMax.toString())
+  }, [currentMin, currentMax])
+
+
+  const handleChange = (value: string) => {
+    setInputValue(value)
+  }
 
   const handleInputUnfocus = () => {
-    const floatedValue = parseFloat(inputValue);
-    const capitalizedParamName = capitalize(paramName);
+    let numericalValue = parseFloat(extractNumber(inputValue) || (setting === "min" ? minBoundary.toString() : maxBoundary.toString()))
 
-    const minValue = maxMin[`min${capitalizedParamName}` as keyof typeof maxMin];
-    const maxValue = maxMin[`max${capitalizedParamName}` as keyof typeof maxMin];
-
-    const currentValue = filter[paramName][setting];
-
-    // If the value is outside bounds or invalid, reset to the boundary value
-    if (floatedValue < minValue || floatedValue > maxValue || isNaN(floatedValue)) {
-      const boundaryValue = maxMin[(setting + capitalizedParamName) as keyof typeof maxMin];
-      setFilter((prev) => ({
-        ...prev,
-        [paramName]: { ...prev[paramName], [setting]: boundaryValue }
-      }));
-      setInputValue(boundaryValue.toString());
-    } else {
-      setFilter((prev) => ({
-        ...prev,
-        [paramName]: { ...prev[paramName], [setting]: floatedValue }
-      }));
+    if(numericalValue < minBoundary || numericalValue > maxBoundary) {
+      numericalValue = setting === "min" ? minBoundary : maxBoundary
     }
-  };
+    setInputValue(numericalValue.toString())
 
+    handleUnitParamChange(
+      paramName,
+      setting === "min" ? numericalValue : minBoundary,
+      setting === "max" ? numericalValue : maxBoundary
+    );
+  }
   return (
     <div>
       <label htmlFor={`${setting}-${paramName}`}>{setting === "min" ? "Від" : "До"}</label>
       <input
         className="w-20 h-8 mt-2 text-center border flex items-center justify-center rounded-2xl"
         value={inputValue} // Bind inputValue to the input field
-        onChange={handleChange} // Update local state on change
+        onChange={(e) => handleChange(e.currentTarget.value)} // Update local state on change
         onBlur={handleInputUnfocus} // Update global filter state on blur
         id={`${setting}-${paramName}`}
       />
     </div>
   );
 };
+
+

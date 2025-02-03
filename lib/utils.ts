@@ -96,68 +96,65 @@ export function createSearchString({
   pNumber,
   sort,
   categories,
-  colors,
-  types,
   search,
   vendors,
-  series,
+  selectParamsValues,
+  unitParamsValues,
   price,
-  width,
-  height,
-  depth,
+  // width,
+  // height,
+  // depth,
   category,
   minPrice,
   maxPrice,
-  maxMin
+  // maxMin
 }: {
   pNumber: string;
   sort: string;
   categories: string[],
-  colors: string[];
-  types: string[];
   search: string;
   vendors: string[];
-  series: string[];
+  selectParamsValues: string[],
+  unitParamsValues: string[],
   price: [number, number];
-  width: { min: number, max: number };
-  height: { min: number, max: number };
-  depth: { min: number, max: number };
-  category: string | null;
+  // width: { min: number, max: number };
+  // height: { min: number, max: number };
+  // depth: { min: number, max: number };
+  category: string,
   minPrice: number;
   maxPrice: number;
-  maxMin: { minWidth: number, maxWidth: number, minHeight: number, maxHeight: number, minDepth: number, maxDepth: number };
+  // maxMin: { minWidth: number, maxWidth: number, minHeight: number, maxHeight: number, minDepth: number, maxDepth: number };
 }) {
   const queryObject: Record<string, string> = {
     page: pNumber,
   };
 
   if (sort !== '') queryObject.sort = sort;
-  if (categories.length > 0) queryObject.category = categories.join(",");
-  if (colors.length > 0) queryObject.color = colors.join(',');
-  if (types.length > 0) queryObject.type = types.join(',');
+  if (categories.length > 0) queryObject.categories = categories.join(",");
   if (search) queryObject.search = search;
   if (vendors.length > 0) queryObject.vendor = vendors.join(',');
-  if (series.length > 0) queryObject.series = series.join(',');
+  if (selectParamsValues.length > 0) queryObject.selectParams = selectParamsValues.join(',');
+  if (unitParamsValues.length > 0) queryObject.unitParams = unitParamsValues.join(',');
 
   if (price[0] !== minPrice || price[1] !== maxPrice) {
     queryObject.minPrice = price[0].toString();
     queryObject.maxPrice = price[1].toString();
   }
 
-  if (width.min !== maxMin.minWidth || width.max !== maxMin.maxWidth) {
-    queryObject.minWidth = width.min.toString();
-    queryObject.maxWidth = width.max.toString();
-  }
+  // if (width.min !== maxMin.minWidth || width.max !== maxMin.maxWidth) {
+  //   queryObject.minWidth = width.min.toString();
+  //   queryObject.maxWidth = width.max.toString();
+  // }
 
-  if (height.min !== maxMin.minHeight || height.max !== maxMin.maxHeight) {
-    queryObject.minHeight = height.min.toString();
-    queryObject.maxHeight = height.max.toString();
-  }
+  // if (height.min !== maxMin.minHeight || height.max !== maxMin.maxHeight) {
+  //   queryObject.minHeight = height.min.toString();
+  //   queryObject.maxHeight = height.max.toString();
+  // }
 
-  if (depth.min !== maxMin.minDepth || depth.max !== maxMin.maxDepth) {
-    queryObject.minDepth = depth.min.toString();
-    queryObject.maxDepth = depth.max.toString();
-  }
+  // if (depth.min !== maxMin.minDepth || depth.max !== maxMin.maxDepth) {
+  //   queryObject.minDepth = depth.min.toString();
+  //   queryObject.maxDepth = depth.max.toString();
+  // }
 
   return new URLSearchParams(queryObject).toString();
 }
@@ -173,45 +170,126 @@ export function getKeyValuePairs<T, K extends keyof T, V extends keyof T>(list: 
 
 
 export function getFiltredProducts(products: ProductType[], searchParams: { [key: string]: string }) {
+  const { 
+    search, maxPrice, minPrice, 
+    categories, vendor, selectParams,
+    unitParams
+    // minWidth, maxWidth, 
+    // minHeight, maxHeight, 
+    // minDepth, maxDepth, 
+  } = searchParams;
+
+  const selectParamsValues = searchParams.selectParams ? selectParams.split(",") : []
+  const unitParamsValues = searchParams.unitParams ? unitParams.split(",") : []
+
+  const paramNamesSet = new Set<string>();
+  const unitParamNamesSet = new Set<string>();
+
+  // Step 1: Loop through selectParamsValues and extract param names
+  selectParamsValues.forEach((entry) => {
+    const [paramName] = entry.split("--");
+    if (paramName) {
+      paramNamesSet.add(paramName); // Add param name to the set
+    }
+  });
+
+  unitParamsValues.forEach((entry) => {
+    const [paramName] = entry.split("--");
+    if (paramName) {
+      unitParamNamesSet.add(paramName); // Add param name to the set
+    }
+  });
+
+
+  console.log(paramNamesSet, unitParamNamesSet)
+  console.log(selectParamsValues, unitParamsValues) 
+
+  
   return products.filter(product => {
-    const { 
-      search, maxPrice, minPrice, 
-      minWidth, maxWidth, 
-      minHeight, maxHeight, 
-      minDepth, maxDepth, 
-      vendor, series, color, type 
-    } = searchParams;
 
     // Check for series match
-    const matchesSeries = series ? 
-      product.params[0].value
-        .toLowerCase()
-        .split(/[\s_]+/)  // Split by space or underscore
-        .some(part => series.toLowerCase().includes(part)) : true;  // Match part of series value if exists
-
+    // const matchesSeries = series ? 
+    //   product.params[0].value
+    //     .toLowerCase()
+    //     .split(/[\s_]+/)  // Split by space or underscore
+    //     .some(part => series.toLowerCase().includes(part)) : true;  // Match part of series value if exists
     const matchesSearch = search ? product.name.toLowerCase().includes(search.toLowerCase()) : true;
-    const matchesPrice = (minPrice || maxPrice) ? 
-      product.priceToShow >= parseFloat(minPrice || '0') && product.priceToShow <= parseFloat(maxPrice || 'Infinity') : true;
-    const matchesWidth = (minWidth || maxWidth) ? 
-      parseFloat(product.params[1].value) >= parseFloat(minWidth || '0') && parseFloat(product.params[1].value) <= parseFloat(maxWidth || 'Infinity') : true;
-    const matchesHeight = (minHeight || maxHeight) ? 
-      parseFloat(product.params[2].value) >= parseFloat(minHeight || '0') && parseFloat(product.params[2].value) <= parseFloat(maxHeight || 'Infinity') : true;
-    const matchesDepth = (minDepth || maxDepth) ? 
-      parseFloat(product.params[3].value) >= parseFloat(minDepth || '0') && parseFloat(product.params[3].value) <= parseFloat(maxDepth || 'Infinity') : true;
+    const matchesPrice = (minPrice || maxPrice) ? product.priceToShow >= parseFloat(minPrice || '0') && product.priceToShow <= parseFloat(maxPrice || 'Infinity') : true;
     const matchesVendor = vendor ? vendor.includes(product.vendor) : true;
-    const matchesColor = color ? color.includes(product.params[5]?.value) : true;
-    const matchesType = type ? type.includes(product.params[4]?.value) : true;
+
+    let matchesSelectParams = selectParamsValues.length === 0; // If no filters are applied, everything matches.
+
+    if (!matchesSelectParams) {
+      matchesSelectParams = true;
+      for (const paramEntry of selectParamsValues) {
+        
+        const [paramName, valuesString] = paramEntry.split("--");
+        if (!valuesString) {
+          matchesSelectParams = false;
+          break;
+        }
+    
+        const valuesSet = new Set(valuesString.split("__"));
+        const productParam = product.params.find((param) => param.name === paramName);
+    
+        if (!productParam || !valuesSet.has(productParam.value)) {
+          matchesSelectParams = false;
+          break; // Stop checking further if one condition fails
+        }
+      }
+    }
+    
+    let matchesUnitParams = unitParamsValues.length === 0; // If no filters are applied, everything matches.
+
+    if (!matchesUnitParams) {
+      matchesUnitParams = true;
+      for (const paramEntry of unitParamsValues) {
+        
+        const [paramName, valuesString] = paramEntry.split("--");
+        if (!valuesString) {
+          matchesUnitParams = false;
+          break;
+        }
+    
+        const [min, max] = new Set(valuesString.split("m"));
+        console.log(min, max);
+        
+        const productParam = product.params.find((param) => param.name === paramName);
+    
+        if (!productParam || isNaN(parseFloat(extractNumber(productParam.value) || ""))) {
+          matchesUnitParams = false;
+          break; // Stop checking further if one condition fails
+        }
+
+        if(parseFloat(extractNumber(productParam.value) || '0') < parseFloat(min) || parseFloat(extractNumber(productParam.value) || '0') > parseFloat(max)) {
+          matchesUnitParams = false;
+          break; // Stop checking further if one condition fails
+        }
+      }
+    }
+    
+    // console.log(product.name, matchesSelectParams)
+    // const matchesWidth = (minWidth || maxWidth) ? 
+    //   parseFloat(product.params[1].value) >= parseFloat(minWidth || '0') && parseFloat(product.params[1].value) <= parseFloat(maxWidth || 'Infinity') : true;
+    // const matchesHeight = (minHeight || maxHeight) ? 
+    //   parseFloat(product.params[2].value) >= parseFloat(minHeight || '0') && parseFloat(product.params[2].value) <= parseFloat(maxHeight || 'Infinity') : true;
+    // const matchesDepth = (minDepth || maxDepth) ? 
+    //   parseFloat(product.params[3].value) >= parseFloat(minDepth || '0') && parseFloat(product.params[3].value) <= parseFloat(maxDepth || 'Infinity') : true;
+    // const matchesColor = color ? color.includes(product.params[5]?.value) : true;
+    // const matchesType = type ? type.includes(product.params[4]?.value) : true;
 
     return (
       matchesSearch &&
       matchesPrice &&
-      matchesWidth &&
-      matchesHeight &&
-      matchesDepth &&
       matchesVendor &&
-      matchesSeries &&
-      matchesColor &&
-      matchesType
+      matchesSelectParams &&
+      matchesUnitParams
+      // matchesWidth &&
+      // matchesHeight &&
+      // matchesDepth &&
+      // matchesSeries &&
+      // matchesColor &&
+      // matchesType
     );
   });
 }
@@ -234,9 +312,6 @@ export function getCounts(filtredProducts: ProductType[]) {
   return {
       categoriesCount: countByKey(filtredProducts, product => product.category),
       vendorsCount: countByKey(filtredProducts, product => product.vendor),
-      typesCount: countByKey(filtredProducts, product => product.params[4]?.value),
-      seriesCount: countByKey(filtredProducts, product => product.params[0]?.value.split('_')[0].split('-')[0]),
-      colorsCount: countByKey(filtredProducts, product => product.params[5]?.value),
   };
 }
 
@@ -396,4 +471,62 @@ export function mergeFilterAndCategories(filter: FilterType, categories: Categor
 
   return mergedCategories;
 }
+
+export function extractNumber(input: string): string | null {
+  const matches = input.match(/\d+[\.,]?\d*/g); // Match integers and decimals with optional comma/period
+  if (!matches) return null;
+
+  return matches.reduce((longest, current) =>
+    current.replace(/,/g, ".").length > longest.replace(/,/g, ".").length ? current : longest
+  );
+}
+
+export function processProductParams(
+  products: { params: { name: string; value: string }[] }[],
+  unitParams: Record<string, { totalProducts: number; type: string; min: number; max: number }>,
+  selectParams: Record<string, { totalProducts: number; type: string; values: { value: string; valueTotalProducts: number }[] }>
+) {
+  const unitValues: Record<string, number[]> = {}; // Collects all values for unit params
+  const valueCounts: Record<string, Record<string, number>> = {}; // Tracks occurrences of each value for selectParams
+
+  products.forEach((product) => {
+    product.params.forEach(({ name, value }) => {
+      if (unitParams[name]) {
+        // Extract the numeric value
+        const num = parseFloat(extractNumber(value)?.replace(",", ".") || "NaN");
+        if (!isNaN(num)) {
+          if (!unitValues[name]) {
+            unitValues[name] = [];
+          }
+          unitValues[name].push(num);
+        }
+      }
+
+      if (selectParams[name]) {
+        // Initialize valueCounts for this param if not present
+        if (!valueCounts[name]) {
+          valueCounts[name] = {};
+        }
+
+        // Increment count of this value
+        valueCounts[name][value] = (valueCounts[name][value] || 0) + 1;
+      }
+    });
+  });
+
+  // Update min/max for unit parameters
+  Object.keys(unitValues).forEach((name) => {
+    unitParams[name].min = Math.min(...unitValues[name]);
+    unitParams[name].max = Math.max(...unitValues[name]);
+  });
+
+  // Convert value counts to the required format and update selectParams
+  Object.keys(valueCounts).forEach((name) => {
+    selectParams[name].values = Object.entries(valueCounts[name]).map(([value, count]) => ({
+      value,
+      valueTotalProducts: count,
+    }));
+  });
+}
+
 

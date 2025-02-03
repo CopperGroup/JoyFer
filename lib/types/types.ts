@@ -198,7 +198,8 @@ type FilterCategory = {
 
 export type FilterType = {
     _id: string,
-    categories: FilterCategory[]
+    categories: FilterCategory[],
+    delay: number
 }
 
 interface ParamType {

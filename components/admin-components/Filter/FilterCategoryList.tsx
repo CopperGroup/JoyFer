@@ -12,6 +12,7 @@ import Pagination from "@/components/shared/Pagination"
 import { createFilter } from "@/lib/actions/filter.actions"
 import { CategoriesParams, CreateFilterProps } from "@/lib/types/types"
 import { capitalize } from "@/lib/utils"
+import { SelectDelay } from "@/components/interface/SelectDelay"
 
 interface ParamType {
   name: string
@@ -31,7 +32,7 @@ const initializeStates = (categories: CategoriesParams) => {
       const key = `${categoryId}-${param.name}`;
 
       // Determine if param should be checked
-      checked[key] = param.type === "select" || param.type === "number" || param.type.startsWith("unit-");
+      checked[key] = param.type === "select" || param.type.startsWith("unit-");
 
       // Process paramTypes and paramUnits
       if (param.type.startsWith("unit-")) {
@@ -47,7 +48,7 @@ const initializeStates = (categories: CategoriesParams) => {
   return { checked, types, units };
 };
 
-export default function FilterCategoryList({ stringifiedCategories }: { stringifiedCategories: string }) {
+export default function FilterCategoryList({ stringifiedCategories, filterDelay}: { stringifiedCategories: string, filterDelay: number }) {
   const categories: CategoriesParams = JSON.parse(stringifiedCategories)
   const { checked, types, units } = initializeStates(categories);
 
@@ -58,6 +59,7 @@ export default function FilterCategoryList({ stringifiedCategories }: { stringif
   const [paramUnits, setParamUnits] = useState<Record<string, string>>(units)
   const [currentPage, setCurrentPage] = useState<number>(1)
   const [ creatingState, setCreatingState ] = useState<"Initial" | "Creating" | "Success" | "Error">("Initial")
+  const [delay, setDelay] = useState<number>(filterDelay)
   const containerRef = useRef(null)
 
   const filteredCategories = useMemo(() => {
@@ -139,11 +141,9 @@ export default function FilterCategoryList({ stringifiedCategories }: { stringif
 
     try {
         setCreatingState("Creating")
-        const result = await createFilter(categoriesObject, "json")
+        const result = await createFilter(categoriesObject, delay, "json")
 
         const createdFilter = JSON.parse(result);
-
-        console.log(createdFilter)
     } finally {
         setCreatingState("Success")
   
@@ -153,7 +153,7 @@ export default function FilterCategoryList({ stringifiedCategories }: { stringif
 
   return (
     <div className="mt-12" ref={containerRef}>
-      <div className="mb-6 flex gap-2 justify-between max-[425px]:flex-col">
+      <div className="mb-6 flex gap-2 justify-between max-[560px]:flex-col">
         <Input
           type="text"
           placeholder="Search categories..."
@@ -161,31 +161,38 @@ export default function FilterCategoryList({ stringifiedCategories }: { stringif
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full h-9"
         />
-        <Button
-          size={"sm"}
-          onClick={handleSaveFilter}
-          disabled={!isFilterComplete}
-          className="w-fit"
-        >
-            {["Initial", "Error"].includes(creatingState) &&
+        <div className="w-fit flex gap-2">
+            <SelectDelay 
+                delay={delay}
+                setDelay={setDelay}
+            />
+            <Button
+            size={"sm"}
+            onClick={handleSaveFilter}
+            disabled={!isFilterComplete}
+            className="w-fit"
+            >
+                {["Initial", "Error"].includes(creatingState) &&
+                    <>
+                        <Plus className="h-5 w-5 mr-1"/>
+                        Save Filter
+                    </>
+                }
+                {creatingState === "Creating" && (
                 <>
-                    <Plus className="h-5 w-5 mr-1"/>
-                    Save Filter
+                    Saving
+                    <Loader2 className="ml-2 h-4 w-4 animate-spin" />
                 </>
-            }
-            {creatingState === "Creating" && (
-              <>
-                {creatingState}
-                <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-              </>
-            )}
-            {creatingState === "Success" && (
-              <>
-                {creatingState}
-                <Check className="ml-2 h-4 w-4" />
-              </>
-            )}
-        </Button>
+                )}
+                {creatingState === "Success" && (
+                <>
+                    {creatingState}
+                    <Check className="ml-2 h-4 w-4" />
+                </>
+                )}
+            </Button>
+
+        </div>
       </div>
       <p className="text-subtle-medium text-red-500 mb-5">{creatingState === "Error" && "All values must be specified"}</p>
       <div className="space-y-4" >
@@ -263,7 +270,6 @@ export default function FilterCategoryList({ stringifiedCategories }: { stringif
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="Select">Select</SelectItem>
-                              <SelectItem value="Number">Number</SelectItem>
                               <SelectItem value="Unit">Unit</SelectItem>
                             </SelectContent>
                           </Select>

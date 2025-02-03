@@ -4,7 +4,7 @@ import { ObjectId } from "mongoose";
 import Category from "../models/category.model";
 import Product from "../models/product.model";
 import { connectToDB } from "../mongoose";
-import { CategoriesParams, ProductType } from "../types/types";
+import { CategoriesParams, CategoryType, ProductType } from "../types/types";
 import clearCache from "./cache";
 import { clearCatalogCache } from "./redis/catalog.actions";
 import { deleteProduct } from "./product.actions";
@@ -147,8 +147,25 @@ export async function updateCategories(
   }
 }
 
+export async function fetchAllCategories(): Promise<CategoryType[]>;
+export async function fetchAllCategories(type: 'json'): Promise<string>;
 
+export async function fetchAllCategories(type?: 'json') {
+   try {
+      
+    connectToDB();
 
+    const allCategories = await Category.find();
+
+    if(type === 'json'){
+      return JSON.stringify(allCategories)
+    } else {
+      return allCategories
+    }
+   } catch (error: any) {
+     throw new Error(`${error.message}`)
+   }
+}
 
 export async function fetchCategoriesProperties() {
   try {
@@ -358,6 +375,20 @@ export async function getCategoriesNamesAndIds(): Promise<{ name: string; catego
     const categories = await Category.find();
 
     const categoriesNamesAndIdsArray = categories.map(category => ({ name: category.name, categoryId: category._id.toString()}))
+
+    return categoriesNamesAndIdsArray
+  } catch (error: any) {
+    throw new Error(`Error fetching all categories names an _ids: ${error.message}`)
+  }
+}
+
+export async function getCategoriesNamesIdsTotalProducts(): Promise<{ name: string; categoryId: string; totalProducts: number}[]> {
+  try {
+    connectToDB();
+
+    const categories = await Category.find();
+
+    const categoriesNamesAndIdsArray = categories.map(category => ({ name: category.name, categoryId: category._id.toString(), totalProducts: category.products.length}))
 
     return categoriesNamesAndIdsArray
   } catch (error: any) {

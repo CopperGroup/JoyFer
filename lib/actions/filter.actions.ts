@@ -2,7 +2,7 @@
 
 import Filter from "../models/filter.model";
 import { connectToDB } from "../mongoose";
-import { CreateFilterProps, FilterType } from "../types/types";
+import { CategoryType, CreateFilterProps, FilterType } from "../types/types";
 
 export async function fetchFilter(): Promise<FilterType>;
 export async function fetchFilter(type: 'json'): Promise<string>;
@@ -23,10 +23,10 @@ export async function fetchFilter(type?: 'json') {
    }
 }
 
-export async function createFilter(categoriesObject: CreateFilterProps): Promise<FilterType>;
-export async function createFilter(categoriesObject: CreateFilterProps, type: 'json'): Promise<string>;
+export async function createFilter(categoriesObject: CreateFilterProps, delay: number): Promise<FilterType>;
+export async function createFilter(categoriesObject: CreateFilterProps, delay: number, type: 'json'): Promise<string>;
 
-export async function createFilter(categoriesObject: CreateFilterProps, type?: 'json') {
+export async function createFilter(categoriesObject: CreateFilterProps, delay: number, type?: 'json') {
   try {
     await connectToDB();
 
@@ -49,14 +49,79 @@ export async function createFilter(categoriesObject: CreateFilterProps, type?: '
     if (filter) {
       // Update the existing filter
       filter.categories = categories;
+      filter.delay = delay;
       await filter.save();
     } else {
       // Create a new filter if none exists
-      filter = await Filter.create({ categories });
+      filter = await Filter.create({ categories, delay });
     }
 
     return type === 'json' ? JSON.stringify(filter) : filter;
   } catch (error: any) {
     throw new Error(`${error.message}`);
   }
+}
+
+type FilterSettingsParamsType = {
+    totalProducts: number;
+    type: string;
+};
+
+type FilterSettingsData = {
+    [categoryId: string]: {
+        params: { [paramName: string]: FilterSettingsParamsType };
+        totalProducts: number;
+    };
+};
+
+
+type PopulatedFilter = Omit<FilterType, "categories"> & {
+  categories: {
+    categoryId: CategoryType;
+    params: FilterType["categories"][number]["params"];
+  }[];
+};
+
+export async function getFilterSettingsAndDelay(): Promise<{ filterSettings: FilterSettingsData, delay: number}>;
+export async function getFilterSettingsAndDelay(type: 'json'): Promise<string>;
+
+export async function getFilterSettingsAndDelay(type?: 'json') {
+   try {
+
+    const filter: PopulatedFilter | null = await Filter.findOne().populate("categories.categoryId").exec();
+
+    const result: FilterSettingsData = {};
+
+    if(filter) {
+        // Iterate through each category in the filter
+        for (const category of filter.categories) {
+            if (!category.categoryId) continue; // Ensure category exists after population
+
+            const categoryId = category.categoryId._id; // Get category name
+            const totalProducts = category.categoryId.products.length; // Get category's total products count
+
+            // Build params object
+            const params: { [paramName: string]: FilterSettingsParamsType } = {};
+            category.params.forEach(param => {
+                params[param.name] = {
+                    totalProducts: param.totalProducts,
+                    type: param.type
+                };
+            });
+
+            // Store in result
+            result[categoryId] = { params, totalProducts };
+        }
+    }
+
+    const response = { filterSettings: result, delay: filter?.delay || 250 };
+
+    if(type === 'json'){
+      return JSON.stringify(response)
+    } else {
+      return response
+    }
+   } catch (error: any) {
+     throw new Error(`${error.message}`)
+   }
 }

@@ -16,17 +16,17 @@ import { createSearchString } from "@/lib/utils"
 type Props = {
   maxPrice: number,
   minPrice: number, 
-  maxMin: {
-    minWidth: number;
-    maxWidth: number;
-    minHeight: number;
-    maxHeight: number;
-    minDepth: number;
-    maxDepth: number;
-  }, 
+  // maxMin: {
+  //   minWidth: number;
+  //   maxWidth: number;
+  //   minHeight: number;
+  //   maxHeight: number;
+  //   minDepth: number;
+  //   maxDepth: number;
+  // }, 
   countOfPages: number
 }
-const PaginationForCatalog = ({ maxPrice, minPrice, maxMin, countOfPages }: Props) => {
+const PaginationForCatalog = ({ maxPrice, minPrice, countOfPages }: Props) => {
   const {catalogData, setCatalogData} = useAppContext();
   
   const search = useSearchParams();
@@ -39,32 +39,19 @@ const PaginationForCatalog = ({ maxPrice, minPrice, maxMin, countOfPages }: Prop
     const searchString = createSearchString({
       pNumber: number.toString(), // Reset to page 1 on filter change
       sort: searchParams.sort || "default",
-      categories: searchParams.category ? searchParams.category.split(","): [],
-      colors: searchParams.color ? searchParams.color.split(',') : [],
-      types: searchParams.type ? searchParams.type.split(',') : [],
+      categories: searchParams.categories ? searchParams.categories.split(","): [],
       vendors: searchParams.vendor ? searchParams.vendor.split(',') : [],
-      series: searchParams.series ? searchParams.series.split(',') : [],
       search: catalogData.search,
       price: [
         parseFloat(searchParams.minPrice || minPrice.toString()),
         parseFloat(searchParams.maxPrice || maxPrice.toString()),
       ],
-      width: {
-        min: parseFloat(searchParams.minWidth || maxMin.minWidth.toString()),
-        max: parseFloat(searchParams.maxWidth || maxMin.maxWidth.toString()),
-      },
-      height: {
-        min: parseFloat(searchParams.minHeight || maxMin.minHeight.toString()),
-        max: parseFloat(searchParams.maxHeight || maxMin.maxHeight.toString()),
-      },
-      depth: {
-        min: parseFloat(searchParams.minDepth || maxMin.minDepth.toString()),
-        max: parseFloat(searchParams.maxDepth || maxMin.maxDepth.toString()),
-      },
       category: searchParams.category,
+      selectParamsValues: searchParams.categories ? (searchParams.selectParams ? searchParams.selectParams.split(","): []) : [],
+      unitParamsValues: searchParams.categories ? (searchParams.unitParams ? searchParams.unitParams.split(","): []) : [],
       minPrice,
       maxPrice,
-      maxMin,
+      // maxMin,
     });
 
     router.push(`/catalog?${searchString}`);
