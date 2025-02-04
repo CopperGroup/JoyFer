@@ -15,29 +15,32 @@ export async function POST(request: NextRequest) {
         // Destructure the body to extract user data
         const {username, email, password } = body;
 
+        console.log(username, email, password)
         // Check if user already exists
         const existingUser = await User.findOne({ email }).select("-password");
 
-        if (!existingUser.selfCreated) {
-            return NextResponse.json({ error: "User already exists" }, { status: 400 });
-        }
-
-        // Hash the password
+        console.log(existingUser)
         const salt = await bcryptjs.genSalt(10);
         const hashedPassword = await bcryptjs.hash(password, salt);
 
         let savedUser = null;
 
-        if (existingUser.selfCreated) {
-            savedUser = await populateSelfCreatedUser({ username, email, password: hashedPassword })
+        if(existingUser) {
+            if (!existingUser.selfCreated) {
+                return NextResponse.json({ error: "User already exists" }, { status: 400 });
+            } else {
+                savedUser = await populateSelfCreatedUser({ username, email, password: hashedPassword })
+            }
         } else {
             savedUser = await createUser({ username, email, password: hashedPassword})
         }
 
+
+        // Hash the password
         //Send verefy token
 
         if(savedUser) {
-            await sendEmail({email, emailType: "VERIFY", userId: savedUser._id})
+            // await sendEmail({email, emailType: "VERIFY", userId: savedUser._id})
             
             // Respond with success message
             return NextResponse.json({

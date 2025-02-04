@@ -43,20 +43,22 @@ import { proceedDataToDB } from "@/lib/proceedDataToDB"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 
-export type Product = {
+export type User = {
   _id: string;
   username: string;
   email: string;
   orders: string[];
+  role: string,
+  name: string
 }
 
-export type DataTableProps<TData extends Product, TValue> = {
+export type DataTableProps<TData extends User, TValue> = {
   data: TData[]
   columns: ColumnDef<TData, TValue>[]
   // ... other props
 }
 
-export function DataTable<TData extends Product, TValue>({
+export function DataTable<TData extends User, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {

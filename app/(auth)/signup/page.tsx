@@ -37,11 +37,13 @@ export default function SignupPage() {
         try {               
           
           const response = await axios.post("/api/users/signup", user);
-          setWasSended(true);
+          // setWasSended(true);
           
           trackFacebookEvent("CompleteRegistration", {
             registration_method: "email",
           });
+
+          router.push('/login')
         } catch (error: any) {
             console.log(error.message);
            

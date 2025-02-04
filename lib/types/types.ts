@@ -157,7 +157,7 @@ export interface UserType {
     totalOrders: number;
     favourite: string[];
     discounts: string[];
-    role: "User" | "Admin";
+    role: "User" | "Admin" | "Owner";
     selfCreated: boolean;
     region?: string;
     city?: string;

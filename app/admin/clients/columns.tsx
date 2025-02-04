@@ -35,7 +35,9 @@ export type User = {
   _id: string;
   username: string;
   email: string;
-  orders: number;
+  orders: string[];
+  role: string,
+  name: string
 }
 
 export const columns: ColumnDef<User>[] = [
@@ -49,6 +51,20 @@ export const columns: ColumnDef<User>[] = [
     header: "Email",
     cell: ({ row }) => (
       <div>{row.getValue("email")}</div>
+    ),
+  },
+  {
+    accessorKey: "role",
+    header: "Role",
+    cell: ({ row }) => (
+      <div className={`${row.getValue('role') === 'Admin' ? 'font-medium text-red-500' : ''}`}>{row.getValue("role")}</div>
+    ),
+  },
+  {
+    accessorKey: "name",
+    header: "Name",
+    cell: ({ row }) => (
+      <div>{row.getValue("name")}</div>
     ),
   },
   {

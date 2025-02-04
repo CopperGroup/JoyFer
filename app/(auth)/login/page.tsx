@@ -50,7 +50,7 @@ export default function LoginPage() {
             });
       
             if (res?.error) {
-              setError("Неправильне ім'я або пароль");
+              setError("Неправильний email або пароль");
               return;
             }
       

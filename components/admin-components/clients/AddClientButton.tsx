@@ -1,56 +1,81 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { createuserByMyself, fetchUserByEmail } from "@/lib/actions/user.actions"
-import { Plus } from "lucide-react"
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Plus } from "lucide-react";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { createuserByMyself, fetchUserByEmail } from "@/lib/actions/user.actions";
+import { useEffect, useState } from "react";
+import OwnerContent from "../OwnerContent";
+import { userSchema } from "@/lib/validations/user";
 
-export function AddClientButton() {
-  const [isOpen, setIsOpen] = useState(false)
-  const [name, setName] = useState("")
-  const [surname, setSurname] = useState("")
-  const [email, setEmail] = useState("")
-  const [phone, setPhone] = useState("")
-  const [error, setError] = useState("")
+type FormData = z.infer<typeof userSchema>;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+export function AddClientButton({ stringifiedUser }: { stringifiedUser: string }) {
+  const user = JSON.parse(stringifiedUser);
 
-    const result = await fetchUserByEmail({ email }, 'json');
+  const [isOpen, setIsOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminConfirmation, setAdminConfirmation] = useState("");
 
-    const existingUser = JSON.parse(result);
+  const form = useForm<FormData>({
+    resolver: zodResolver(userSchema),
+    defaultValues: {
+      name: "",
+      surname: "",
+      email: "",
+      phoneNumber: "",
+    },
+  });
 
-    if(existingUser) {
-      setError("Email already in use")
+  const handleSubmit = async (values: FormData) => {
+    if (isAdmin && adminConfirmation !== 'Yes') {
+      return;
     }
 
-    if(!name || !email) {
-      setError("Name and email must be provided")
-    }
-    
-    if(!error && name && email && !existingUser) {
-      console.log("Adding client:", { name, surname, email, phone })
+    try {
+      const result = await fetchUserByEmail({ email: values.email }, "json");
+      const existingUser = JSON.parse(result);
 
-      const createdUser = await createuserByMyself({ name, email, surname, phoneNumber: phone}, "json")
-  
-      setName("")
-      setSurname("")
-      setEmail("")
-      setPhone("")
-      setIsOpen(false)
-    }
+      if (existingUser) {
+        form.setError("email", { message: "Email already in use" });
+        return;
+      }
 
-  }
+      await createuserByMyself(
+        {
+          name: values.name,
+          email: values.email,
+          surname: values.surname,
+          phoneNumber: values.phoneNumber,
+          role: adminConfirmation === 'Yes' ? isAdmin ? 'Admin' : 'User' : 'User',
+          currentUserEmail: user.email
+        },
+        "json"
+      );
+
+      form.reset();
+      setIsAdmin(false);
+      setAdminConfirmation("");
+      setIsOpen(false);
+    } catch (error) {
+      console.error("Error adding client:", error);
+      form.setError("email", { message: "Something went wrong. Please try again." });
+    }
+  };
 
   return (
     <div className="w-full flex justify-end">
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>
           <Button variant="default" className="text-base-semibold text-white">
-            <Plus className="size-5 mr-1"/>
+            <Plus className="size-5 mr-1" />
             Add Client
           </Button>
         </DialogTrigger>
@@ -58,67 +83,90 @@ export function AddClientButton() {
           <DialogHeader>
             <DialogTitle className="text-heading3-bold">Add New Client</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name" className="text-base-semibold">
-                Name *
-              </Label>
-              <Input
-                id="name"
-                value={name}
-                onChange={(e) => {setName(e.target.value), setError("")}}
-                placeholder="Enter client name"
-                required
-                className="text-base-regular placeholder:text-subtle-medium"
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter client name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="surname" className="text-base-semibold">
-                Surname
-              </Label>
-              <Input
-                id="surname"
-                value={surname}
-                onChange={(e) => setSurname(e.target.value)}
-                placeholder="Enter client surname (optional)"
-                className="text-base-regular placeholder:text-subtle-medium"
+              <FormField
+                control={form.control}
+                name="surname"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Surname</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter client surname (optional)" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-base-semibold">
-                Email *
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => {setEmail(e.target.value), setError("")}}
-                placeholder="Enter client email"
-                required
-                className="text-base-regular placeholder:text-subtle-medium"
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email *</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="Enter client email" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="phone" className="text-base-semibold">
-                Phone Number
-              </Label>
-              <Input
-                id="phone"
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="Enter client phone number (optional)"
-                className="text-base-regular placeholder:text-subtle-medium"
+              <FormField
+                control={form.control}
+                name="phoneNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone Number</FormLabel>
+                    <FormControl>
+                      <Input type="tel" placeholder="Enter client phone number (optional)" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-            <p className="text-small-medium text-red-500">{error}</p>
-            <Button type="submit" className="w-full text-base-semibold text-white">
-              Add Client
-            </Button>
-          </form>
+              <div className="flex items-center space-x-2">
+                <OwnerContent role={user.role}>
+                  <Checkbox id="admin" checked={isAdmin} onCheckedChange={(checked) => setIsAdmin(checked === true)} />
+                  <Label htmlFor="admin" className="text-base-semibold">
+                    Admin
+                  </Label>
+                </OwnerContent>
+              </div>
+              {isAdmin && (
+                <div className="space-y-2">
+                  <Label htmlFor="admin-confirmation" className="text-base-medium">
+                    Type <span className="text-red-500">Yes</span> to confirm *
+                  </Label>
+                  <Input
+                    id="admin-confirmation"
+                    value={adminConfirmation}
+                    onChange={(e) => setAdminConfirmation(e.target.value)}
+                    placeholder="Type your name exactly"
+                    className="text-base-regular placeholder:text-subtle-medium"
+                    required
+                  />
+                </div>
+              )}
+              <Button type="submit" className="w-full text-base-semibold text-white">
+                Add Client
+              </Button>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }
-

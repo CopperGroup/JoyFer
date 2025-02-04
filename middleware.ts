@@ -8,7 +8,7 @@ export default withAuth(
         //console.log(request.nextauth.token)
 
          if (request.nextUrl.pathname.startsWith("/admin")
-             && request.nextauth.token?.role !== "Admin") {
+             && !["Admin", "Owner"].includes(request.nextauth.token?.role || "User")) {
             return NextResponse.rewrite(
                 new URL("/", request.url)
             )

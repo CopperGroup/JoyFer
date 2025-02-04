@@ -305,7 +305,7 @@ const EditProduct = ({ stringifiedProduct, categories, stringifiedCategory }: { 
                       <CopyButton text={form.getValues("id")}/>
                     </div>
                   </FormControl>
-                  <FormMessage className="text-[12px] text-red-500 ml-2" />
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -328,7 +328,7 @@ const EditProduct = ({ stringifiedProduct, categories, stringifiedCategory }: { 
                         {...field}
                       />
                     </FormControl>
-                    <FormMessage className="text-[12px] text-red-500 ml-2" />
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -347,7 +347,7 @@ const EditProduct = ({ stringifiedProduct, categories, stringifiedCategory }: { 
                         {...field}
                       />
                     </FormControl>
-                    <FormMessage className="text-[12px] text-red-500 ml-2" />
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -529,7 +529,7 @@ const EditProduct = ({ stringifiedProduct, categories, stringifiedCategory }: { 
                         {...field}
                       />
                     </FormControl>
-                    <FormMessage className="text-[12px] text-red-500 ml-2" />
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -567,7 +567,7 @@ const EditProduct = ({ stringifiedProduct, categories, stringifiedCategory }: { 
                           }}
                         />
                     </FormControl>
-                    <FormMessage className="text-[12px] text-red-500 ml-2" />
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -667,7 +667,7 @@ const EditProduct = ({ stringifiedProduct, categories, stringifiedCategory }: { 
                                 disabled={form.getValues("price").slice(1).length === 0}
                               />
                             </FormControl>
-                            <FormMessage className="text-[12px] text-red-500 ml-2" />
+                            <FormMessage />
                           </FormItem>
                         )}
                       />
@@ -716,7 +716,7 @@ const EditProduct = ({ stringifiedProduct, categories, stringifiedCategory }: { 
                           {...field}
                         />
                       </FormControl>
-                      <FormMessage className="text-[12px] text-red-500 ml-2" />
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -736,7 +736,7 @@ const EditProduct = ({ stringifiedProduct, categories, stringifiedCategory }: { 
                           {...field}
                         />
                       </FormControl>
-                      <FormMessage className="text-[12px] text-red-500 ml-2" />
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -762,7 +762,7 @@ const EditProduct = ({ stringifiedProduct, categories, stringifiedCategory }: { 
                           {...field}
                         />
                       </FormControl>
-                      <FormMessage className="text-[12px] text-red-500 ml-2" />
+                      <FormMessage />
                     </FormItem>
                     {categories.some((cat) => cat.name.trim() === form.getValues('category').trim()) && (
                       <p className="text-subtle-medium text-yellow-600 mt-1.5 ml-2">
@@ -806,7 +806,7 @@ const EditProduct = ({ stringifiedProduct, categories, stringifiedCategory }: { 
                           className="min-w-[300px] text-base-regular bg-white"
                           triggerStyle="text-[13px] text-gray-700 font-normal bg-neutral-100"
                         />
-                      <FormMessage className="text-[12px] text-red-500 ml-2" />
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -854,7 +854,7 @@ const EditProduct = ({ stringifiedProduct, categories, stringifiedCategory }: { 
                                     // onChange={(e) => {field.value = e.target.value; console.log(field)}}
                                 />
                             </FormControl>
-                            <FormMessage className="text-[12px] text-red-500 ml-2" />
+                            <FormMessage />
                         </FormItem>
                 ))}
             </div>
@@ -888,7 +888,7 @@ const EditProduct = ({ stringifiedProduct, categories, stringifiedCategory }: { 
                       onCheckedChange={field.onChange}
                     />
                   </FormControl>
-                  <FormMessage className="text-[12px] text-red-500 ml-2" />
+                  <FormMessage />
                 </FormItem>
               )}
             />
