@@ -19,7 +19,7 @@ const Page = async () => {
     return (
         <section className="px-10 py-20 w-full max-[360px]:px-4">
             <h1 className="text-heading1-bold drop-shadow-text-blue">Налаштування фільтру</h1>
-            <FilterCategoryList stringifiedCategories={categories} filterDelay={filter.delay || 250}/>
+            <FilterCategoryList stringifiedCategories={categories} filterDelay={filter?.delay || 250}/>
         </section>
     )
 }
