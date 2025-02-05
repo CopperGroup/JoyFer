@@ -530,3 +530,8 @@ export function processProductParams(
 }
 
 
+export function generateUniqueId() {
+  const randomPart = Math.floor(1000 + Math.random() * 9000).toString();
+  const timestampPart = Date.now().toString().slice(-4); 
+  return randomPart + timestampPart;
+}

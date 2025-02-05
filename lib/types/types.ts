@@ -18,6 +18,7 @@ export type ProductType = {
     category: string,
     vendor: string,
     description: string,
+    articleNumber: string,
     params: {
         name: string,
         value: string
@@ -96,7 +97,7 @@ export type Config = {
             reference_by: ConfigPathValue
         },
         Products: {
-            id: ConfigPathValue,
+            article_number: ConfigPathValue,
             name: ConfigPathValue,
             price: ConfigPathValue,
             discount_price: ConfigPathValue,
@@ -132,6 +133,7 @@ export type CreateUrlParams = {
     images: (string | null)[],
     vendor: string | null,
     description: string | null,
+    articleNumber: string | null,
     params: {
         name: string | null,
         value: string | null

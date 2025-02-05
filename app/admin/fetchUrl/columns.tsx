@@ -80,19 +80,19 @@ export const columns: ColumnDef<Product, unknown>[] = [
     ),
   },
   {
-    accessorKey: "id",
+    accessorKey: "articleNumber",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Номер 
+          Артикул
           <CaretSortIcon className="ml-2 h-4 w-4" />
         </Button>
       )
     },
-    cell: ({ row }) => <div className="pl-4">{row.getValue("id")}</div>,
+    cell: ({ row }) => <div className="pl-4">{row.getValue("articleNumber")}</div>,
   },
   {
     accessorKey: "name",

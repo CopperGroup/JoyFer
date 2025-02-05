@@ -48,18 +48,18 @@ export const cards = [
     ref: 1,
     name: "Products",
     leftElements: [
-        { id: "l3-1", name: "ID" },
-        { id: 'l3-2', name: "Available"},
-        { id: 'l3-3', name: "Quantity"},
-        { id: 'l3-4', name: "Url"},
-        { id: 'l3-5', name: "Price"},
-        { id: 'l3-6', name: "Discount price"},
-        { id: 'l3-7', name: "Images"},
-        { id: 'l3-8', name: "Vendor"},
-        { id: 'l3-9', name: "Name"},
-        { id: 'l3-10', name: "Description"},
-        { id: 'l3-11', name: "Params"},
-        { id: 'l3-12', name: "Category"}
+        { id: 'l3-1', name: "Available"},
+        { id: 'l3-2', name: "Quantity"},
+        { id: 'l3-3', name: "Url"},
+        { id: 'l3-4', name: "Price"},
+        { id: 'l3-5', name: "Discount price"},
+        { id: 'l3-6', name: "Images"},
+        { id: 'l3-7', name: "Vendor"},
+        { id: 'l3-8', name: "Name"},
+        { id: 'l3-9', name: "Description"},
+        { id: 'l3-10', name: "Params"},
+        { id: 'l3-11', name: "Category"},
+        { id: 'l3-12', name: "Article number"}
     ],
     rightElements: [
         { id: 'r3-1', name: "loading..."}

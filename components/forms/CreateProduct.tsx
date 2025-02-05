@@ -25,7 +25,7 @@ import { useUploadThing } from "@/lib/uploadthing";
 import { useDropzone } from "@uploadthing/react";
 import { generateClientDropzoneAccept } from "uploadthing/client";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
-import { removeAllButOne, removeExtraLeadingCharacters } from "@/lib/utils";
+import { generateUniqueId, removeAllButOne, removeExtraLeadingCharacters } from "@/lib/utils";
 import { getCategoriesNamesAndIds, updateCategories } from "@/lib/actions/categories.actions";
 import { Store } from "@/constants/store";
 import { SearchableSelect } from "@/components/shared/SearchableSelect"
@@ -138,7 +138,7 @@ const CreateProduct = () => {
     const form = useForm<z.infer<typeof ProductValidation>>({
       resolver: zodResolver(ProductValidation),
       defaultValues: {
-        id: "",
+        id: generateUniqueId(),
         name: "",
         price: `${Store.currency_sign}0`,
         priceToShow: `${Store.currency_sign}0`,
@@ -153,12 +153,6 @@ const CreateProduct = () => {
     });
 
   const [isChecked, setIsChecked] = useState(form.getValues("isAvailable") ?? true); 
-
-  function generateUniqueId() {
-    const randomPart = Math.floor(1000 + Math.random() * 9000).toString();
-    const timestampPart = Date.now().toString().slice(-4); 
-    return randomPart + timestampPart;
-  }
 
   const onSubmit = async (values: z.infer<typeof ProductValidation>) => {
     
@@ -178,8 +172,9 @@ const CreateProduct = () => {
           url: values.url ? values.url : "",
           price: parseFloat(values.price.slice(1)),
           priceToShow: parseFloat(values.priceToShow.slice(1)),
-          vendor: values.vendor,
+          vendor: values.vendor || "Not specified",
           category: !isNewCategory ? categories.filter(category => category.categoryId === values.category)[0].name : values.category,
+          articleNumber: values.articleNumber,
           description: values.description,
           isAvailable: isChecked,
           params: values.customParams || [],
@@ -249,19 +244,19 @@ const CreateProduct = () => {
   }, [customParams]);
   
 
-  useEffect(() => {
-    const setId = async () => {
-      try {
-        const uniqueId = generateUniqueId();
+  // useEffect(() => {
+  //   const setId = async () => {
+  //     try {
+  //       const uniqueId = generateUniqueId();
 
-        form.setValue("id", uniqueId)
-      } catch (error: any) {
-        throw new Error(`Error creating id: ${error.message}`)
-      }
-    }
+  //       form.setValue("id", uniqueId)
+  //     } catch (error: any) {
+  //       throw new Error(`Error creating id: ${error.message}`)
+  //     }
+  //   }
 
-    setId();
-  }, [])
+  //   setId();
+  // }, [])
 
   const handleNoDiscount = (value: boolean) => {
     if(value) {
@@ -711,6 +706,26 @@ const CreateProduct = () => {
                     <FormItem className='w-full'>
                       <FormLabel className='text-small-medium text-[14px] text-dark-1'>
                         Постачальник<span className="text-subtle-medium"> *</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type='text'
+                          className="text-small-regular text-gray-700 text-[13px] bg-neutral-100 ml-1 focus-visible:ring-black focus-visible:ring-[1px]"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="articleNumber"
+                  render={({ field }) => (
+                    <FormItem className='w-full'>
+                      <FormLabel className='text-small-medium text-[14px] text-dark-1'>
+                        Артикул
                       </FormLabel>
                       <FormControl>
                         <Input

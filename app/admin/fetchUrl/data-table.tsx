@@ -55,6 +55,7 @@ export type Product = {
   images: (string | null)[],
   vendor: string | null,
   description: string | null,
+  articleNumber: string | null,
   params: {
     name: string | null,
     value: string | null

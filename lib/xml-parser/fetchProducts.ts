@@ -1,5 +1,5 @@
 import { DOMParser } from "xmldom";
-import { getElementData, replaceDescription } from "../utils";
+import { generateUniqueId, getElementData, replaceDescription } from "../utils";
 import getTagsMap from "./getTagsMap";
 import { Config, ProductType } from "../types/types";
 
@@ -55,7 +55,7 @@ export default function getProductsData(xmlString: string, config: Config) {
   for (let i = 0; i < products.length; i++) {
     const product = products[i]
     // // Extract attributes and elements
-    const id = getElementData({...config.paths.Products.id, parent: product }) as string;
+    const articleNumber = getElementData({...config.paths.Products.article_number, parent: product }) as string;
     const isAvailableValue = getElementData({...config.paths.Products.available, parent: product }) as string;
     const quantityElement = getElementData({...config.paths.Products.quantity, parent: product }) as Element;
     const urlElement = getElementData({...config.paths.Products.url, parent: product }) as Element;
@@ -104,8 +104,11 @@ export default function getProductsData(xmlString: string, config: Config) {
       }
     }
     
+    const id = generateUniqueId();
+
     const sampleProduct = {
       id,
+      articleNumber,
       name: name as string,
       isAvailable,
       quantity,

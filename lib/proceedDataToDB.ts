@@ -16,6 +16,7 @@ interface Product {
     images: (string | null)[],
     vendor: string | null,
     description: string | null,
+    articleNumber: string | null,
     params: {
         name: string | null,
         value: string | null
@@ -26,11 +27,12 @@ interface Product {
 
 export async function proceedDataToDB(data: Product[], selectedRowsIds: (string | null)[]) {
     try {
+        console.log(data)
         const stringifiedUrlProducts = await fetchUrlProducts("json");
         let urlProducts: Product[] = JSON.parse(stringifiedUrlProducts as string);
 
         const leftOverProducts = urlProducts.filter(
-            urlProduct => !data.some(product => product.id === urlProduct.id)
+            urlProduct => !data.some(product => product.articleNumber === urlProduct.articleNumber)
         );
 
         const processedIds = new Set<string>();
@@ -39,7 +41,7 @@ export async function proceedDataToDB(data: Product[], selectedRowsIds: (string 
 
         for (const product of data) {
             if (product.id && selectedRowsIds.includes(product.id) && !processedIds.has(product.id)) {
-                const existingProductIndex = urlProducts.findIndex(urlProduct => urlProduct.id === product.id);
+                const existingProductIndex = urlProducts.findIndex(urlProduct => urlProduct.articleNumber === product.articleNumber);
 
                 if (existingProductIndex !== -1) {
                     // Add to bulk update array
@@ -55,6 +57,7 @@ export async function proceedDataToDB(data: Product[], selectedRowsIds: (string 
                         images: product.images,
                         vendor: product.vendor,
                         description: product.description,
+                        articleNumber: product.articleNumber,
                         params: product.params,
                         isFetched: product.isFetched,
                         category: product.category,
@@ -73,6 +76,7 @@ export async function proceedDataToDB(data: Product[], selectedRowsIds: (string 
                         vendor: product.vendor,
                         description: product.description,
                         params: product.params,
+                        articleNumber: product.articleNumber,
                         isFetched: product.isFetched,
                         category: product.category || "No-category",
                     });

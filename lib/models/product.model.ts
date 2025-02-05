@@ -32,6 +32,9 @@ const productSchema = new mongoose.Schema({
     description: {
         type: String
     },
+    articleNumber: {
+        type: String
+    },
     params: [
         {
             name: {

@@ -19,6 +19,7 @@ interface Product {
   price: number;
   priceToShow: number;
   category: string;
+  articleNumber: string;
 }
 
 const ITEMS_PER_PAGE = 10;
@@ -103,6 +104,7 @@ const ProductsTable = ({ stringifiedProducts }: { stringifiedProducts: string })
                     <SelectItem value="vendor">Vendor</SelectItem>
                     <SelectItem value="category">Category</SelectItem>
                     <SelectItem value="isAvailable">Is Available</SelectItem>
+                    <SelectItem value="articleNumber">Article</SelectItem>
                   </SelectGroup>
                 </SelectContent>
               </Select>
@@ -126,6 +128,7 @@ const ProductsTable = ({ stringifiedProducts }: { stringifiedProducts: string })
                     <TableHead>Доступний</TableHead>
                     <TableHead className="text-right">Ціна без знижки</TableHead>
                     <TableHead className="text-right">Ціна із знижкою</TableHead>
+                    <TableHead>Артикул</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -149,6 +152,7 @@ const ProductsTable = ({ stringifiedProducts }: { stringifiedProducts: string })
                       <TableCell className={`text-right ${product.priceToShow < product.price ? 'text-red-600' : ''}`}>
                         {formatter.format(product.priceToShow)}
                       </TableCell>
+                      <TableCell>{product.articleNumber}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
