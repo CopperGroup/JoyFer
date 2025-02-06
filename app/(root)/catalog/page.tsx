@@ -10,7 +10,7 @@ import { getSession } from '@/lib/getServerSession'
 import BannerSmall from '@/components/banner/BannerSmall'
 import { fetchCatalog } from '@/lib/actions/redis/catalog.actions'
 import { fetchAllProducts } from '@/lib/actions/product.actions'
-import { getCounts, getFiltredProducts, processProductParams } from '@/lib/utils'
+import { filterProductsByKey, getCounts, getFiltredProducts, pretifyProductName, processProductParams } from '@/lib/utils'
 import { getCategoriesNamesIdsTotalProducts } from '@/lib/actions/categories.actions'
 import { getFilterSettingsAndDelay } from '@/lib/actions/filter.actions'
 
@@ -103,6 +103,8 @@ const Catalog = async ({searchParams,data}:any) => {
   const counts = getCounts(filtredProducts)
   filtredProducts = getFiltredProducts(filtredProducts, searchParams);
 
+  // filtredProducts = filterProductsByKey(filtredProducts, "name", " ", -1);
+
   const countOfPages = Math.ceil(filtredProducts.length/12)
   const pageNumber = searchParams.page
 
@@ -139,7 +141,7 @@ const Catalog = async ({searchParams,data}:any) => {
           </div> 
         
           <div className='grid auto-cols-max gap-4 mt-8 grid-cols-4 px-4 max-2xl:grid-cols-3 max-lg:grid-cols-2 max-[560px]:grid-cols-1 max-[560px]:px-10 max-[450px]:px-4'>
-            {filtredProducts
+            {filterProductsByKey(filtredProducts, "name", " ", -1)
             .slice(min, max)
             .map((product) =>(
               <div key={product.id}>
@@ -153,7 +155,8 @@ const Catalog = async ({searchParams,data}:any) => {
                   imageUrl={product.images[0]} 
                   description={product.description.replace(/[^а-яА-ЯіІ]/g, ' ').substring(0, 35) + '...'}  
                   priceToShow={product.priceToShow} 
-                  name={product.name}
+                  name={pretifyProductName(product.name, [], product.articleNumber || "")}
+                  // @ts-ignore
                   likedBy={product.likedBy}
                 />
              

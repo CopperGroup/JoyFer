@@ -2,23 +2,28 @@
 
 import { useState } from "react"
 import { motion } from "framer-motion"
-import { X } from 'lucide-react'
-import { useRouter } from "next/navigation"
+import { Plus } from 'lucide-react'
 
-export default function ClearFilterButton() {
+interface ClearFilterButtonProps {
+  onClick?: () => void; // Optional onClick prop
+}
+
+export default function ApplyFilterButton({ onClick }: ClearFilterButtonProps) {
   const [isClicked, setIsClicked] = useState(false)
-
-  const router = useRouter();
 
   const handleClear = () => {
     setIsClicked(true);
 
-    setTimeout(() => router.push('/catalog?page=1&sort=default'), 200)
+    if (onClick) {
+      onClick();
+    }
+
+    setTimeout(() => setIsClicked(false), 200);
   }
 
   return (
     <motion.button
-      className="w-full relative overflow-hidden bg-white text-gray-800 font-semibold py-2 px-4 rounded-full border border-gray-300 shadow-sm"
+      className="w-full relative overflow-hidden bg-neutral-900 text-white font-semibold py-2 px-4 rounded-full border border-gray-700 shadow-sm"
       whileHover="hover"
       whileTap="tap"
       onClick={handleClear}
@@ -26,7 +31,7 @@ export default function ClearFilterButton() {
       initial="initial"
     >
       <motion.div
-        className="absolute inset-0 bg-gray-100"
+        className="absolute inset-0 bg-neutral-800"
         initial={{ opacity: 0 }}
         variants={{
           hover: { opacity: 1 },
@@ -38,13 +43,13 @@ export default function ClearFilterButton() {
       <motion.div 
         className="relative flex items-center space-x-2"
         variants={{
-          initial: { color: "#1f2937" },
-          hover: { color: "#111827" },
+          initial: { color: "#ffffff" },
+          hover: { color: "#f3f4f6" },
           tap: { scale: 0.95 },
         }}
       >
-        <X className="w-4 h-4" />
-        <span>Очистити</span>
+        <Plus className="w-4 h-4" />
+        <span>Застосувати</span>
       </motion.div>
 
       <motion.div
@@ -67,4 +72,3 @@ export default function ClearFilterButton() {
     </motion.button>
   )
 }
-

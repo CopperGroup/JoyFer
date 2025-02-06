@@ -2,8 +2,12 @@
 
 import Product from '@/lib/models/product.model';
 import ProductPage from '@/components/shared/ProductPage';
+import { fetchProductAndRelevantParams } from '@/lib/actions/product.actions';
 
-const Page = async (context: any) => {
+const Page = async ({ params }: { params: { id: string } }) => {
+  if(!params.id) {
+    return <h1>Product does not exist</h1>
+  }
   // function getFirstTwoWords(text: string) {
   //   // Trim spaces, split the string into an array of words
   //   const words = text.trim().split('_');
@@ -16,7 +20,7 @@ const Page = async (context: any) => {
   // }
 
   // const searchQuery = getFirstTwoWords(context.params.id);
-  const product = await Product.findOne({_id: context.params.id});
+  const { product, selectParams } = await fetchProductAndRelevantParams(params.id, "name", " ", -1);
 
   // Find products whose model includes the search query (first two words with hyphen preference)
   // const colors = await Product.find({ 'params.0.value': { $regex: searchQuery, $options: "i" } });
@@ -30,7 +34,7 @@ const Page = async (context: any) => {
 
   return (
     <section className="max-lg:-mt-24">
-      <ProductPage productJson={JSON.stringify(product)} colorsJson={"[]"} />
+      <ProductPage productJson={JSON.stringify(product)} selectParams={selectParams} />
     </section>
   );
 };

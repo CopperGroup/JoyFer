@@ -656,3 +656,74 @@ export async function findProductCategory(product: ProductType, type?: "json"): 
         throw new Error(`Error finding product's category: ${error.message}`);
     }
 }
+
+type ParamDifference = {
+  [paramName: string]: Array<{ _id: string; value: string }>;
+};
+
+export async function fetchProductAndRelevantParams(
+  currentProductId: string,
+  key: keyof ProductType,
+  splitChar?: string,
+  index?: number,
+  type?: "json"
+): Promise<{ product: ProductType; selectParams: ParamDifference } | { product: string; selectParams: ParamDifference }> {
+  try {
+    connectToDB();
+
+    const currentProduct = await Product.findById(currentProductId);
+    if (!currentProduct || typeof currentProduct[key] !== "string") {
+      throw new Error("Current product not found or key is not a string");
+    }
+
+    let valueToCompare = currentProduct[key] as string;
+    if (splitChar && index !== undefined) {
+      const splitParts = valueToCompare.split(splitChar);
+      valueToCompare = splitParts[index === -1 ? splitParts.length - 1 : index] ?? valueToCompare;
+    }
+
+    // Find products with the same base value (excluding the current product)
+    const similarProducts = await Product.find({
+      [key]: new RegExp(valueToCompare, "i"),
+      isAvailable: true,
+    });
+
+    const paramDifferences: ParamDifference = {};
+
+    // Identify differing parameters
+    for (const product of similarProducts) {
+      if (product.params && Array.isArray(product.params)) {
+        for (const param of product.params) {
+          const existing = paramDifferences[param.name] || [];
+
+          if (
+            !existing.some((item) => item.value === param.value) &&
+            currentProduct.params?.some(
+              (cp: { name: string; value: string }) => cp.name === param.name && cp.value !== param.value
+            )
+          ) {
+            paramDifferences[param.name] = [
+              ...existing,
+              { _id: product._id.toString(), value: param.value },
+            ];
+          }
+        }
+      }
+    }
+
+    // Return based on the `json` type flag
+    if (type === "json") {
+      return {
+        product: JSON.stringify(currentProduct),
+        selectParams: paramDifferences,
+      };
+    }
+
+    return {
+      product: currentProduct,
+      selectParams: paramDifferences,
+    };
+  } catch (error: any) {
+    throw new Error(`${error.message}`);
+  }
+}

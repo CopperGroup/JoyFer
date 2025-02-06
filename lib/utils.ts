@@ -535,3 +535,57 @@ export function generateUniqueId() {
   const timestampPart = Date.now().toString().slice(-4); 
   return randomPart + timestampPart;
 }
+
+export function filterProductsByKey<T extends keyof ProductType>(
+  products: ProductType[],
+  key: T,
+  splitChar?: string,
+  index?: number
+): ProductType[] {
+  const seenValues = new Set<string>();
+
+  return products.filter((product) => {
+    const keyValue = product[key];
+
+    if (typeof keyValue !== "string") {
+      return true; // Skip filtering if the key value is not a string
+    }
+
+    let valueToCompare: string = keyValue;
+
+    if (splitChar && index !== undefined) {
+      const splitParts = keyValue.split(splitChar);
+      valueToCompare = splitParts[index === -1 ? splitParts.length - 1 : index] ?? keyValue;
+    }
+
+    if (!seenValues.has(valueToCompare)) {
+      seenValues.add(valueToCompare);
+      return true; // Keep the first product with this value
+    }
+
+    return false; // Skip duplicates
+  });
+}
+
+export function pretifyProductName(productName: string, params: { name: string, value: string }[], articleNumber: string): string {
+  let cleanedName = productName;
+
+  // Split the product name into words and exclude the first two words
+  const words = cleanedName.split(' ');
+  const wordsToCheck = words.slice(2).join(' '); // Skip the first two words
+
+  // Remove article number from the product name (ignoring the first two words)
+  const articleNumberRegex = new RegExp(articleNumber, 'i');
+  cleanedName = cleanedName.replace(articleNumberRegex, '').trim();
+
+  // Iterate over the params and remove matching parts from the name (ignoring the first two words)
+  params.forEach((param) => {
+    const paramValueRegex = new RegExp(param.value, 'i'); // Create a case-insensitive regex for each param value
+    // Only remove if the param value is found in the part of the name excluding the first two words
+    if (wordsToCheck.match(paramValueRegex)) {
+      cleanedName = cleanedName.replace(paramValueRegex, '').trim(); // Remove param value from the name
+    }
+  });
+
+  return cleanedName;
+}

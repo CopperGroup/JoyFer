@@ -22,11 +22,6 @@ interface Props {
     }[];
 }
 
-
-
-
-
-
 const ProductCard = ({ id, productId, email, priceToShow, price, name, imageUrl, description, url, likedBy}: Props) => {
   return (
     <article className="w-[100%] h-96 bg-neutral-100 rounded-2xl flex items-center justify-center  mx-auto" >     

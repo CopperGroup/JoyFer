@@ -22,6 +22,7 @@ import { RadioGroup, RadioGroupItem } from '../ui/radio-group'
 import { Label } from '../ui/label'
 import ClearFilterButton from '../interface/ClearFilterButton'
 import { CategoryType } from '@/lib/types/types'
+import ApplyFilterButton from '../interface/ApplyFilterButton'
 
 interface Props {
   maxPrice:number,
@@ -100,34 +101,52 @@ const Filter = ({ maxPrice, minPrice, categories, checkParams, selectParams, uni
   }, [search, minPrice, maxPrice, checkParams, categories, counts]);
   
 
-  useEffect(() => {
+  // useEffect(() => {
 
-    const startSearch = async () => {
+  //   const startSearch = async () => {
 
-      console.log(delay);
-      await sleep(delay);
+  //     console.log(delay);
+  //     await sleep(delay);
 
-      const searchString = createSearchString({
-        pNumber: filter.page, // Reset to page 1 on filter change
-        sort,
-        categories: filter.categories,
-        vendors: filter.vendors,
-        search: catalogData.search,
-        price: filter.price,
-        category,
-        minPrice,
-        maxPrice,
-        selectParamsValues: filter.categories.length > 0 ? filter.selectParamsValues : [],
-        unitParamsValues: filter.categories.length > 0 ? filter.unitParamsValues: []
-        // maxMin,
-      });
-      router.push(`/catalog?${searchString}`);
-    }
+  //     const searchString = createSearchString({
+  //       pNumber: filter.page, // Reset to page 1 on filter change
+  //       sort,
+  //       categories: filter.categories,
+  //       vendors: filter.vendors,
+  //       search: catalogData.search,
+  //       price: filter.price,
+  //       category,
+  //       minPrice,
+  //       maxPrice,
+  //       selectParamsValues: filter.categories.length > 0 ? filter.selectParamsValues : [],
+  //       unitParamsValues: filter.categories.length > 0 ? filter.unitParamsValues: []
+  //       // maxMin,
+  //     });
+  //     router.push(`/catalog?${searchString}`);
+  //   }
 
-    startSearch()
-    // Handle filter changes, reset to page 1
-  }, [debounce, sort, catalogData.search, category]);  
+  //   startSearch()
+  //   // Handle filter changes, reset to page 1
+  // }, [debounce, sort, catalogData.search, category]);  
   
+  const handleApplyFilter = () => {
+    const searchString = createSearchString({
+      pNumber: filter.page, // Reset to page 1 on filter change
+      sort,
+      categories: filter.categories,
+      vendors: filter.vendors,
+      search: catalogData.search,
+      price: filter.price,
+      category,
+      minPrice,
+      maxPrice,
+      selectParamsValues: filter.categories.length > 0 ? filter.selectParamsValues : [],
+      unitParamsValues: filter.categories.length > 0 ? filter.unitParamsValues: []
+      // maxMin,
+    });
+    router.push(`/catalog?${searchString}`);
+  }
+
   useEffect(() => {
     const currentScreenWidth = window.screen.width;
 
@@ -472,7 +491,8 @@ const Filter = ({ maxPrice, minPrice, categories, checkParams, selectParams, uni
 
             </>
           }
-          <div className="pb-5">
+          <div className="space-y-3 pb-5">
+            <ApplyFilterButton onClick={handleApplyFilter}/>
             <ClearFilterButton />
           </div>
           </div>

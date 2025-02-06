@@ -219,3 +219,14 @@ interface CategoryDataParams {
 export type CategoriesParams =  {
   [key: string]: CategoryDataParams
 }
+
+export type Product = {
+    _id: string;
+    name: string;
+    description: string;
+    category: string;
+    images: string[];
+    price: number;
+    priceToShow: number;
+    params: Array<{ name: string; value: string }>;
+};
