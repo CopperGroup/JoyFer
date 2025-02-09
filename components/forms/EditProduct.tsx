@@ -150,6 +150,7 @@ const EditProduct = ({ stringifiedProduct, categories, stringifiedCategory }: { 
       priceToShow: `${Store.currency_sign}${product.priceToShow}`,
       description: product.description,
       url: product.url,
+      articleNumber: product.articleNumber,
       quantity: product.quantity.toString(),
       category: isNewCategory ? productCategory.name : productCategory._id,
       vendor: product.vendor,
@@ -722,6 +723,27 @@ const EditProduct = ({ stringifiedProduct, categories, stringifiedCategory }: { 
                   )}
                 />
 
+
+                <FormField
+                  control={form.control}
+                  name="articleNumber"
+                  render={({ field }) => (
+                    <FormItem className='w-full'>
+                      <FormLabel className='text-small-medium text-[14px] text-dark-1'>
+                        Артикул
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type='text'
+                          className="text-small-regular text-gray-700 text-[13px] bg-neutral-100 ml-1 focus-visible:ring-black focus-visible:ring-[1px]"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
                 <FormField
                   control={form.control}
                   name="url"
