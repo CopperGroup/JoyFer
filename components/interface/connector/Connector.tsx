@@ -10,6 +10,7 @@ import { Config, Connection } from '@/lib/types/types'
 import { generateConfigurator } from '@/lib/xml-parser/generateConfigurator'
 import { stages } from '@/components/admin-components/parseXML/XMLParser'
 import { useXmlParser } from '@/app/admin/context'
+import { connectionCardsDefault } from '@/constants/connection.cards'
 import generateSample from '@/lib/xml-parser/generateSample'
 
 type Element = {
@@ -143,6 +144,7 @@ export default function Connector({ setCurrentStage }: { setCurrentStage: React.
       const refCard = cards.filter(card => card.id === currentCard.ref)[0];
       
       const refConnections = JSON.parse(sessionStorage.getItem(`connection-card-${currentCard.ref}`) || '[]') as Connection[];
+      // const refConnections = connectionCardsDefault as Connection[];
     if(refCard) {
         const targetElement = refCard.leftElements.find(element => element.name === cards[currentCardIndex].name);
 
@@ -193,8 +195,10 @@ export default function Connector({ setCurrentStage }: { setCurrentStage: React.
   
   useEffect(() => {
     const newConnections = JSON.parse(
-      sessionStorage.getItem(`connection-card-${currentCard.id}`) || '[]'
+      sessionStorage.getItem(`connection-card-${currentCard.id}`) || 
+      JSON.stringify(connectionCardsDefault[`connectionCard${currentCard.id}` as keyof typeof connectionCardsDefault])
     );
+    
   
     if (newConnections.some((connection: Connection) => connection.end.includes('-attribute'))) {
       setShowAttributes(true);
