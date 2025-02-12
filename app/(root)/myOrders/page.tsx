@@ -1,5 +1,3 @@
-
-
 import React from 'react'
 import { getSession } from '@/lib/getServerSession';
 import Order from '@/lib/models/order.model';
@@ -8,6 +6,11 @@ import { fetchUsersOrders } from '@/lib/actions/order.actions';
 import OrderCard from '@/components/cards/OrderCard';
 import { formatDateString } from '@/lib/utils';
 import { redirect } from 'next/navigation';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: "My orders"
+}
 
 const myOrders = async() => {
 

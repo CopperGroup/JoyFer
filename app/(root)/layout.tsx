@@ -19,8 +19,14 @@ import { Analytics } from "@vercel/analytics/react"
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "FO Scandinavia",
-  description: "Only the best tastes",
+  title: {
+    default: "Sveamoda",
+    template: "%s - Sveamoda"
+  },
+  description: "",
+  twitter: {
+    card: "summary_large_image"
+  },
 };
 
 export default async function RootLayout({

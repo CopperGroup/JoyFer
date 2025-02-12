@@ -1,5 +1,3 @@
-'use server'
-
 import React from 'react'
 import Filter from '@/components/shared/Filter'
 import ProductCard from '@/components/cards/ProductCard'
@@ -13,6 +11,11 @@ import { fetchAllProducts } from '@/lib/actions/product.actions'
 import { filterProductsByKey, getCounts, getFiltredProducts, pretifyProductName, processProductParams } from '@/lib/utils'
 import { getCategoriesNamesIdsTotalProducts } from '@/lib/actions/categories.actions'
 import { getFilterSettingsAndDelay } from '@/lib/actions/filter.actions'
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: "Catalog"
+}
 
 
 const Catalog = async ({searchParams,data}:any) => {

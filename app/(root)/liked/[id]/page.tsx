@@ -1,7 +1,12 @@
 import ProductCard from "@/components/cards/ProductCard";
 import { fetchLikedProducts } from "@/lib/actions/product.actions";
 import { fetchUserById } from "@/lib/actions/user.actions";
+import { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+    title: "Liked products"
+}
 
 const Page = async ({ params }: { params: { id: string } }) => {
     if(!params.id) return null;

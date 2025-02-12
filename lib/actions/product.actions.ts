@@ -666,8 +666,7 @@ export async function fetchProductAndRelevantParams(
   key: keyof ProductType,
   splitChar?: string,
   index?: number,
-  type?: "json"
-): Promise<{ product: ProductType; selectParams: ParamDifference } | { product: string; selectParams: ParamDifference }> {
+): Promise<{ product: ProductType; selectParams: ParamDifference }> {
   try {
     connectToDB();
 
@@ -709,14 +708,6 @@ export async function fetchProductAndRelevantParams(
           }
         }
       }
-    }
-
-    // Return based on the `json` type flag
-    if (type === "json") {
-      return {
-        product: JSON.stringify(currentProduct),
-        selectParams: paramDifferences,
-      };
     }
 
     return {

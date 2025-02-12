@@ -1,6 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { cache } from "react";
+import { ProductType } from "../types/types";
+import { fetchProductAndRelevantParams } from "./product.actions";
 
 const paths = {
     categories: "/admin/categories",
@@ -82,3 +85,13 @@ export default async function clearCache(functionNames: typeof adminPaths[number
     });
 }
 
+export const fetchProductPageInfo = cache(async (
+    currentProductId: string,
+    key: keyof ProductType,
+    splitChar?: string,
+    index?: number
+) => {
+    const info = await fetchProductAndRelevantParams(currentProductId, key, splitChar, index)
+
+    return info
+})

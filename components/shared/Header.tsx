@@ -29,7 +29,6 @@ const infoNames = [
   "Контакти",
   "Доставка та оплата",
   "Гаратнія та сервіси",
-  "Презентації"
 ]
 
 export default function Header({ email, user }: { email: string; user: string }) {
@@ -106,7 +105,7 @@ export default function Header({ email, user }: { email: string; user: string })
                             <p className={`text-small-medium font-normal hover:text-white transition-all ${isActive && "text-white"}`}>{label}</p>
                           </MenubarTrigger>
                           <MenubarContent className="min-w-[9rem] bg-[#1f1f1f] text-neutral-400 border-0 rounded-2xl">
-                            {["contacts", "delivery-payment", "warranty-services", "presentations"].map((subItem, index) => (
+                            {["contacts", "delivery-payment", "warranty-services" ].map((subItem, index) => (
                               <MenubarItem key={subItem} className="text-small-medium font-normal cursor-pointer hover:text-white transition-all">
                                 <TransitionLink href={`/info/${subItem}`} onClick={() => handleLead(`/info/${subItem}`)}>
                                   {infoNames[index].split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
