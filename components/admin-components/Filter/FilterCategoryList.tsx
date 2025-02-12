@@ -7,12 +7,13 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Check, Loader2, Plus } from "lucide-react"
+import { Check, Loader2, Plus, Sparkles, Stars } from "lucide-react"
 import Pagination from "@/components/shared/Pagination"
 import { createFilter } from "@/lib/actions/filter.actions"
 import { CategoriesParams, CreateFilterProps } from "@/lib/types/types"
 import { capitalize } from "@/lib/utils"
 import { SelectDelay } from "@/components/interface/SelectDelay"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface ParamType {
   name: string
@@ -151,6 +152,27 @@ export default function FilterCategoryList({ stringifiedCategories, filterDelay}
     }
   }
 
+  const handleSetRecommendedToSelect = () => {
+    const updatedCheckedParams = { ...checkedParams }
+    const updatedParamTypes = { ...paramTypes }
+  
+    Object.entries(categories).forEach(([categoryId, category]) => {
+      category.params.forEach((param) => {
+        if (param.totalProducts === category.totalProducts) {
+          const key = `${categoryId}-${param.name}`
+          updatedCheckedParams[key] = true  // Ensure it's checked
+          updatedParamTypes[key] = "Select" // Set type to "Select"
+        }
+      })
+    })
+  
+    setCheckedParams(updatedCheckedParams)
+    setParamTypes(updatedParamTypes)
+    
+    console.log("Updated Filter:", { checkedParams: updatedCheckedParams, paramTypes: updatedParamTypes })
+  }
+  
+  
   return (
     <div className="mt-12" ref={containerRef}>
       <div className="mb-6 flex gap-2 justify-between max-[560px]:flex-col">
@@ -280,20 +302,6 @@ export default function FilterCategoryList({ stringifiedCategories, filterDelay}
                              defaultValue=""
                              onChange={(e) => handleUnitChange(categoryId, param.name, e.currentTarget.value)}
                             />
-                            // <Select
-                            //   onValueChange={(value) => handleUnitChange(categoryId, param.name, value)}
-                            //   value={paramUnits[`${categoryId}-${param.name}`]}
-                            // >
-                            //   <SelectTrigger className="w-full sm:w-[140px] text-[12px] h-7 bg-white border-gray-300 hover:bg-gray-50 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 rounded-md">
-                            //     <SelectValue placeholder="Select Unit" />
-                            //   </SelectTrigger>
-                            //   <SelectContent>
-                            //     <SelectItem value="g">g</SelectItem>
-                            //     <SelectItem value="kg">kg</SelectItem>
-                            //     <SelectItem value="m">m</SelectItem>
-                            //     <SelectItem value="cm">cm</SelectItem>
-                            //   </SelectContent>
-                            // </Select>
                           )}
                         </div>
                       )}
@@ -314,6 +322,24 @@ export default function FilterCategoryList({ stringifiedCategories, filterDelay}
         scrollToTheTop={true}
         containerRef={containerRef}
       />
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button 
+              className="fixed right-10 bottom-10 rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-300 bg-white"
+              variant="outline"
+              size="icon"
+              onClick={handleSetRecommendedToSelect}
+            >
+              <Sparkles className="h-6 w-6 text-blue" />
+              <span className="sr-only">Generate with AI</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="left" align="center" className="bg-gray-900 text-white">
+            <p className="text-sm font-medium">Generate with AI</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     </div>
   )
 }

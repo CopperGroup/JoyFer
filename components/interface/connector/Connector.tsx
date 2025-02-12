@@ -197,8 +197,7 @@ export default function Connector({ setCurrentStage }: { setCurrentStage: React.
     const newConnections = JSON.parse(
       sessionStorage.getItem(`connection-card-${currentCard.id}`) || 
       JSON.stringify(connectionCardsDefault[`connectionCard${currentCard.id}` as keyof typeof connectionCardsDefault])
-    );
-    
+    );    
   
     if (newConnections.some((connection: Connection) => connection.end.includes('-attribute'))) {
       setShowAttributes(true);
