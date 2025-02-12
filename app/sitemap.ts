@@ -4,8 +4,9 @@ import type { MetadataRoute } from "next";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     let filtredProducts: any[] = [];
+
     try {
-        const response = await fetch(`${Store.domain}/api/catalog`);
+        const response = await fetch(`${Store.domain}/api/catalog`, { cache: 'no-store' });
         if (response.ok) {
         filtredProducts = await response.json();
         } else {
