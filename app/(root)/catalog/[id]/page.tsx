@@ -12,7 +12,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
     openGraph: {
       images: [
         {
-          url: product.images[0]
+          url: `https://fo-scandinavia.vercel.app/${product.images[0]}`
         }
       ]
     }
