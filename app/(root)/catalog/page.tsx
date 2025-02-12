@@ -14,7 +14,11 @@ import { getFilterSettingsAndDelay } from '@/lib/actions/filter.actions'
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: "Catalog"
+  title: "Catalog",
+  robots: {
+    index: false,
+    follow: true
+  }
 }
 
 
