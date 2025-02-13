@@ -7,13 +7,14 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Check, Loader2, Plus, Sparkles, Stars } from "lucide-react"
+import { Check, Eye, Loader2, Plus, Sparkles, Stars } from "lucide-react"
 import Pagination from "@/components/shared/Pagination"
 import { createFilter } from "@/lib/actions/filter.actions"
 import { CategoriesParams, CreateFilterProps } from "@/lib/types/types"
 import { capitalize } from "@/lib/utils"
 import { SelectDelay } from "@/components/interface/SelectDelay"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import Link from "next/link"
 
 interface ParamType {
   name: string
@@ -158,7 +159,7 @@ export default function FilterCategoryList({ stringifiedCategories, filterDelay}
   
     Object.entries(categories).forEach(([categoryId, category]) => {
       category.params.forEach((param) => {
-        if (param.totalProducts === category.totalProducts) {
+        if (param.totalProducts >= (category.totalProducts / 1.4)) {
           const key = `${categoryId}-${param.name}`
           updatedCheckedParams[key] = true  // Ensure it's checked
           updatedParamTypes[key] = "Select" // Set type to "Select"
@@ -171,7 +172,6 @@ export default function FilterCategoryList({ stringifiedCategories, filterDelay}
     
     console.log("Updated Filter:", { checkedParams: updatedCheckedParams, paramTypes: updatedParamTypes })
   }
-  
   
   return (
     <div className="mt-12" ref={containerRef}>
@@ -267,13 +267,23 @@ export default function FilterCategoryList({ stringifiedCategories, filterDelay}
                             {param.name}
                           </label>
                         </div>
-                        <div className="flex items-center">
+                        <div className="flex items-center gap-2">
                           <Badge
                             variant="secondary"
                             className={`${getBadgeColor(categoryId, param.name)} text-[10px] font-medium px-3 rounded-full`}
                           >
                             {param.totalProducts === category.totalProducts ? "All" : param.totalProducts}
                           </Badge>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <Link href={`/admin/filter/${category.name}&${param.name}`} target="_blank"><Eye className="w-4 h-4"/></Link>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="text-subtle-medium">Preview product</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </div>
                       </div>
                           {param.totalProducts === category.totalProducts && (

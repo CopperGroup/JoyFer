@@ -718,3 +718,31 @@ export async function fetchProductAndRelevantParams(
     throw new Error(`${error.message}`);
   }
 }
+
+
+export async function fetchPreviewProduct({ param }: { param: string }): Promise<ProductType>;
+export async function fetchPreviewProduct({ param }: { param: string }, type: 'json'): Promise<string>;
+
+export async function fetchPreviewProduct({ param }: { param: string }, type?: 'json') {
+   try {
+    connectToDB();
+
+    const [category, paramName] = param.split("&");
+
+    console.log(category, paramName)
+    const products = await Product.find({
+      category,
+      params: {
+        $elemMatch: { name: paramName }
+      }
+    });
+
+    if(type === 'json'){
+      return JSON.stringify(products[0])
+    } else {
+      return products[0]
+    }
+   } catch (error: any) {
+     throw new Error(`Error finding preview product: ${error.message}`)
+   }
+}
