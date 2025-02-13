@@ -4,12 +4,6 @@ import { fetchPreviewProduct } from '@/lib/actions/product.actions'
 import { Store } from '@/constants/store'
 import { ProductType } from '@/lib/types/types'
 
-interface Param {
-  name: string
-  value: string
-  type: string
-}
-
 const ProductPreviewPage = async ({ params }: { params: { param: string } }) => {
   if (!params.param) return null
 

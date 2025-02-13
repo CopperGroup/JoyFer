@@ -12,6 +12,7 @@ import { filterProductsByKey, getCounts, getFiltredProducts, pretifyProductName,
 import { getCategoriesNamesIdsTotalProducts } from '@/lib/actions/categories.actions'
 import { getFilterSettingsAndDelay } from '@/lib/actions/filter.actions'
 import { Metadata } from 'next';
+import { Store } from '@/constants/store'
 
 export const metadata: Metadata = {
   title: "Catalog",
@@ -25,7 +26,14 @@ export const metadata: Metadata = {
 const Catalog = async ({searchParams,data}:any) => {
   // let filtredProducts = await fetchAllProducts();
 
-  let filtredProducts: any[] = await fetchCatalog();
+  let filtredProducts: any[] = [];
+
+  const response = await fetch(`${Store.domain}/api/catalog`);
+  if (response.ok) {
+    filtredProducts = await response.json();
+  } else {
+    filtredProducts = await fetchCatalog();
+  }
   
   const email = await getSession()
 
