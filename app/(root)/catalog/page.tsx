@@ -12,7 +12,7 @@ import { filterProductsByKey, getCounts, getFiltredProducts, pretifyProductName,
 import { getCategoriesNamesIdsTotalProducts } from '@/lib/actions/categories.actions'
 import { getFilterSettingsAndDelay } from '@/lib/actions/filter.actions'
 import { Metadata } from 'next';
-import { Store } from '@/constants/store'
+import { FilterSettingsData } from '@/lib/types/types'
 
 export const metadata: Metadata = {
   title: "Catalog",
@@ -24,32 +24,26 @@ export const metadata: Metadata = {
 
 
 const Catalog = async ({searchParams,data}:any) => {
-  // let filtredProducts = await fetchAllProducts();
+  // let filteredProducts = await fetchAllProducts();
 
-  let filtredProducts: any[] = [];
+  let filteredProducts : any[]= [];
+  let categories: { name: string; categoryId: string; totalProducts: number}[] = [];
+  let filterSettings: FilterSettingsData = {};
+  let delay = 0;
 
-  const response = await fetch(`${Store.domain}/api/catalog`);
-  if (response.ok) {
-    filtredProducts = await response.json();
-  } else {
-    filtredProducts = await fetchCatalog();
-  }
+  ({ filteredProducts, categories, filterSettings, delay } = await fetchCatalog());
   
   const email = await getSession()
 
-  const categories: { name: string, categoryId: string, totalProducts: number}[] = await getCategoriesNamesIdsTotalProducts();
-
-  const {filterSettings, delay} = await getFilterSettingsAndDelay();
-
   if(searchParams.sort === 'low_price'){
-    filtredProducts = filtredProducts.sort((a,b) => a.price - b.price)
+    filteredProducts = filteredProducts.sort((a,b) => a.price - b.price)
   }else if(searchParams.sort == 'hight_price'){
-    filtredProducts.sort((a,b) => b.price - a.price)
+    filteredProducts.sort((a,b) => b.price - a.price)
   }
   
   const searchedCategories = searchParams.categories 
 
-  filtredProducts = filtredProducts.filter(product => {
+  filteredProducts = filteredProducts.filter(product => {
 
     const matchesCategories = searchedCategories ? categories.filter(cat => searchedCategories.includes(cat.categoryId)).map(cat => cat.name).includes(product.category): true
   
@@ -77,50 +71,19 @@ const Catalog = async ({searchParams,data}:any) => {
     });
   }
 
-  // console.log("Unit params")
-  // console.log(unitParams)
-  // console.log(selectParams)
   
-  processProductParams(filtredProducts, unitParams, selectParams);
+  processProductParams(filteredProducts, unitParams, selectParams);
   
-  // console.log(unitParams); // Min and max updated
-  // console.log(selectParams); // Values list updated
   
-  const maxPrice = Math.max(...filtredProducts.map(item => item.priceToShow));
-  const minPrice = Math.min(...filtredProducts.map(item => item.priceToShow));
-  const vendors = Array.from(new Set (filtredProducts.map(item => item.vendor))).filter(function(item) {return item !== '';});
+  const maxPrice = Math.max(...filteredProducts.map(item => item.priceToShow));
+  const minPrice = Math.min(...filteredProducts.map(item => item.priceToShow));
+  const vendors = Array.from(new Set (filteredProducts.map(item => item.vendor))).filter(function(item) {return item !== '';});
 
-  // const maxMin = () => {
-  //   const allParams = filtredProducts.map(item => item.params);
-  //   const widths = [];
-  //   const heights = [];
-  //   const depths = [];
-    
-  //   for(const params of allParams) {
-  //     for(const param of params) {
-  //       if (!isNaN(param.value)) {
-  //         if (['Ширина, см', "Width, cm"].includes(param.name)) {
-  //           widths.push(parseFloat(param.value))
-  //         } else if(['Висота, см', "Height, cm"].includes(param.name)) {
-  //           heights.push(parseFloat(param.value))
-  //         } else if(['Глибина, см', "Depth, cm"].includes(param.name)) {
-  //           depths.push(parseFloat(param.value))
-  //         }
-  //       }
-  //     }
-  //   }
-    
-  //   return { minWidth: Math.min(...widths), maxWidth: Math.max(...widths), minHeight: Math.min(...heights), maxHeight: Math.max(...heights), minDepth: Math.min(...depths), maxDepth: Math.max(...depths)} as const
-  // }
-  
-  // const maxMinRes = maxMin();
+  const counts = getCounts(filteredProducts)
+  filteredProducts = getFiltredProducts(filteredProducts, searchParams);
 
-  const counts = getCounts(filtredProducts)
-  filtredProducts = getFiltredProducts(filtredProducts, searchParams);
 
-  // filtredProducts = filterProductsByKey(filtredProducts, "name", " ", -1);
-
-  const countOfPages = Math.ceil(filtredProducts.length/12)
+  const countOfPages = Math.ceil(filteredProducts.length/12)
   const pageNumber = searchParams.page
 
   let min = 0
@@ -156,7 +119,7 @@ const Catalog = async ({searchParams,data}:any) => {
           </div> 
         
           <div className='grid auto-cols-max gap-4 mt-8 grid-cols-4 px-4 max-2xl:grid-cols-3 max-lg:grid-cols-2 max-[560px]:grid-cols-1 max-[560px]:px-10 max-[450px]:px-4'>
-            {filterProductsByKey(filtredProducts, "name", " ", -1)
+            {filterProductsByKey(filteredProducts, "name", " ", -1)
             .slice(min, max)
             .map((product) =>(
               <div key={product.id}>

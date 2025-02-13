@@ -230,3 +230,15 @@ export type Product = {
     priceToShow: number;
     params: Array<{ name: string; value: string }>;
 };
+
+export type FilterSettingsParamsType = {
+    totalProducts: number;
+    type: string;
+};
+
+export type FilterSettingsData = {
+    [categoryId: string]: {
+        params: { [paramName: string]: FilterSettingsParamsType };
+        totalProducts: number;
+    };
+};
