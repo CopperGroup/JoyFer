@@ -97,42 +97,42 @@ const Filter = ({ maxPrice, minPrice, categories, checkParams, selectParams, uni
       unitParamsValues: searchParams.categories ? (searchParams.unitParams ? searchParams.unitParams.split(',') : []) : []
     }))
     
-    setSort(searchParams.sort || "default")
+    console.log(catalogData)
+    setCatalogData((prev: any) => ({...prev, sort: searchParams.sort || "default"}))
   }, [search, minPrice, maxPrice, checkParams, categories, counts]);
   
 
-  // useEffect(() => {
+  useEffect(() => {
 
-  //   const startSearch = async () => {
+    const startSearch = async () => {
 
-  //     console.log(delay);
-  //     await sleep(delay);
+      console.log(catalogData, sort);
+      await sleep(delay);
 
-  //     const searchString = createSearchString({
-  //       pNumber: filter.page, // Reset to page 1 on filter change
-  //       sort,
-  //       categories: filter.categories,
-  //       vendors: filter.vendors,
-  //       search: catalogData.search,
-  //       price: filter.price,
-  //       category,
-  //       minPrice,
-  //       maxPrice,
-  //       selectParamsValues: filter.categories.length > 0 ? filter.selectParamsValues : [],
-  //       unitParamsValues: filter.categories.length > 0 ? filter.unitParamsValues: []
-  //       // maxMin,
-  //     });
-  //     router.push(`/catalog?${searchString}`);
-  //   }
+      const searchString = createSearchString({
+        pNumber: filter.page, // Reset to page 1 on filter change
+        sort: catalogData.sort,
+        categories: filter.categories,
+        vendors: filter.vendors,
+        search: catalogData.search,
+        price: filter.price,
+        category,
+        minPrice,
+        maxPrice,
+        selectParamsValues: filter.categories.length > 0 ? filter.selectParamsValues : [],
+        unitParamsValues: filter.categories.length > 0 ? filter.unitParamsValues: []
+        // maxMin,
+      });
+      router.push(`/catalog?${searchString}`);
+    }
 
-  //   startSearch()
-  //   // Handle filter changes, reset to page 1
-  // }, [debounce, sort, catalogData.search, category]);  
+    startSearch()
+  }, [catalogData.search, catalogData.sort]);  
   
   const handleApplyFilter = () => {
     const searchString = createSearchString({
-      pNumber: filter.page, // Reset to page 1 on filter change
-      sort,
+      pNumber: filter.page,
+      sort: catalogData.sort,
       categories: filter.categories,
       vendors: filter.vendors,
       search: catalogData.search,
@@ -142,7 +142,6 @@ const Filter = ({ maxPrice, minPrice, categories, checkParams, selectParams, uni
       maxPrice,
       selectParamsValues: filter.categories.length > 0 ? filter.selectParamsValues : [],
       unitParamsValues: filter.categories.length > 0 ? filter.unitParamsValues: []
-      // maxMin,
     });
     router.push(`/catalog?${searchString}`);
   }

@@ -22,15 +22,11 @@ import { trackFacebookEvent } from '@/helpers/pixel'
 
 type SortParams = "default" | "low_price" | "hight_price"
 
-const Search = ({searchParams}:any) => {
-    const router = useRouter();
+const Search = () => {
     const {catalogData, setCatalogData} = useAppContext();
-    const [sort, setSort] = useState<SortParams>('default');
+    const [sort, setSort] = useState<SortParams>(catalogData.sort);
     const [searchText, setSearchText] = useState<string>("");
-    const [debounce] = useDebounce(searchText,200)
-
-   
-    
+    const [debounce] = useDebounce(searchText, 0)
 
     const textFromInput = (e:any)=>{
         setSearchText(e.target.value)
@@ -44,7 +40,7 @@ const Search = ({searchParams}:any) => {
           search_string: debounce,
         });
       }
-    },[debounce,sort])
+    },[debounce, sort])
 
 
     
@@ -60,7 +56,7 @@ const Search = ({searchParams}:any) => {
         />
         <Input type='text' onChange={textFromInput}  placeholder='Пошук товару' />
       </div>
-      <Select onValueChange={(element: SortParams) => setSort(element)} >
+      <Select value={sort} onValueChange={(element: SortParams) => setSort(element)}>
         <SelectTrigger className="w-[240px] max-[600px]:hidden">
           <SelectValue placeholder="Звичайне" />
         </SelectTrigger>
