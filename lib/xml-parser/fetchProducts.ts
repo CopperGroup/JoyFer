@@ -90,7 +90,9 @@ export default function getProductsData(xmlString: string, config: Config) {
   
     for (let i = 0; i < imagesElements.length; i++) {
        const image = imagesElements[i].textContent;
-       if (image) images.push(image);
+       if (image) {
+        images.push(image.replace(/\s+/g, ""));
+      }
     }
   
     for (let i = 0; i < paramsElements.length; i++) {

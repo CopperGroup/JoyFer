@@ -11,6 +11,7 @@ import { Store } from '@/constants/store'
 import ProductImagesCarousel from '../interface/ProductImagesCarousel'
 import ProductVariantSelector from '../interface/ProductVariantSelector'
 import { pretifyProductName } from '@/lib/utils'
+import BuyNow from './BuyNow'
 
 export type Product = {
   _id: string;
@@ -75,8 +76,12 @@ export default function ProductPage({ productJson, selectParams }: { productJson
                                     <span className="text-heading3-bold text-blue-600" itemProp="price">{Store.currency_sign}{product.priceToShow}</span>
                                     <meta itemProp="priceCurrency" content="UAH" />
                                 </span>
-                                <span className="text-body-medium text-gray-500 line-through">{Store.currency_sign}{product.price}</span>
-                                <Badge variant="destructive" className="text-small-medium">Sale</Badge>
+                                {product.priceToShow !== product.price && 
+                                    <>
+                                        <span className="text-body-medium text-gray-500 line-through">{Store.currency_sign}{product.price}</span>
+                                        <Badge variant="destructive" className="text-small-medium">Sale</Badge>
+                                    </>
+                                }
                             </div>
                             
                             <div className="space-y-3 text-base-regular">
@@ -102,6 +107,13 @@ export default function ProductPage({ productJson, selectParams }: { productJson
                             />
                             
                             <div className="flex items-center gap-4 flex-wrap">
+                                <BuyNow
+                                    id={product._id} 
+                                    name={product.name} 
+                                    image={product.images[0]} 
+                                    price={product.price} 
+                                    priceWithoutDiscount={product.priceToShow} 
+                                />
                                 <AddToCart 
                                     id={product._id} 
                                     name={product.name} 
@@ -110,7 +122,7 @@ export default function ProductPage({ productJson, selectParams }: { productJson
                                     priceWithoutDiscount={product.priceToShow} 
                                     variant="full"
                                 />
-                                <Button variant="outline" className="text-base-medium py-6">Купити зараз</Button>
+                                {/* <Button variant="outline" className="text-base-medium py-6">Купити зараз</Button> */}
                             </div>
                         </div>
                     </div>

@@ -101,13 +101,9 @@ export function createSearchString({
   selectParamsValues,
   unitParamsValues,
   price,
-  // width,
-  // height,
-  // depth,
   category,
   minPrice,
   maxPrice,
-  // maxMin
 }: {
   pNumber: string;
   sort: string;
@@ -117,13 +113,9 @@ export function createSearchString({
   selectParamsValues: string[],
   unitParamsValues: string[],
   price: [number, number];
-  // width: { min: number, max: number };
-  // height: { min: number, max: number };
-  // depth: { min: number, max: number };
   category: string,
   minPrice: number;
   maxPrice: number;
-  // maxMin: { minWidth: number, maxWidth: number, minHeight: number, maxHeight: number, minDepth: number, maxDepth: number };
 }) {
   const queryObject: Record<string, string> = {
     page: pNumber,
@@ -140,21 +132,6 @@ export function createSearchString({
     queryObject.minPrice = price[0].toString();
     queryObject.maxPrice = price[1].toString();
   }
-
-  // if (width.min !== maxMin.minWidth || width.max !== maxMin.maxWidth) {
-  //   queryObject.minWidth = width.min.toString();
-  //   queryObject.maxWidth = width.max.toString();
-  // }
-
-  // if (height.min !== maxMin.minHeight || height.max !== maxMin.maxHeight) {
-  //   queryObject.minHeight = height.min.toString();
-  //   queryObject.maxHeight = height.max.toString();
-  // }
-
-  // if (depth.min !== maxMin.minDepth || depth.max !== maxMin.maxDepth) {
-  //   queryObject.minDepth = depth.min.toString();
-  //   queryObject.maxDepth = depth.max.toString();
-  // }
 
   return new URLSearchParams(queryObject).toString();
 }
@@ -174,9 +151,6 @@ export function getFiltredProducts(products: ProductType[], searchParams: { [key
     search, maxPrice, minPrice, 
     categories, vendor, selectParams,
     unitParams
-    // minWidth, maxWidth, 
-    // minHeight, maxHeight, 
-    // minDepth, maxDepth, 
   } = searchParams;
 
   const selectParamsValues = searchParams.selectParams ? selectParams.split(",") : []
@@ -207,12 +181,6 @@ export function getFiltredProducts(products: ProductType[], searchParams: { [key
   
   return products.filter(product => {
 
-    // Check for series match
-    // const matchesSeries = series ? 
-    //   product.params[0].value
-    //     .toLowerCase()
-    //     .split(/[\s_]+/)  // Split by space or underscore
-    //     .some(part => series.toLowerCase().includes(part)) : true;  // Match part of series value if exists
     const matchesSearch = search ? product.name.toLowerCase().includes(search.toLowerCase()) : true;
     const matchesPrice = (minPrice || maxPrice) ? product.priceToShow >= parseFloat(minPrice || '0') && product.priceToShow <= parseFloat(maxPrice || 'Infinity') : true;
     const matchesVendor = vendor ? vendor.includes(product.vendor) : true;
@@ -267,16 +235,6 @@ export function getFiltredProducts(products: ProductType[], searchParams: { [key
         }
       }
     }
-    
-    // console.log(product.name, matchesSelectParams)
-    // const matchesWidth = (minWidth || maxWidth) ? 
-    //   parseFloat(product.params[1].value) >= parseFloat(minWidth || '0') && parseFloat(product.params[1].value) <= parseFloat(maxWidth || 'Infinity') : true;
-    // const matchesHeight = (minHeight || maxHeight) ? 
-    //   parseFloat(product.params[2].value) >= parseFloat(minHeight || '0') && parseFloat(product.params[2].value) <= parseFloat(maxHeight || 'Infinity') : true;
-    // const matchesDepth = (minDepth || maxDepth) ? 
-    //   parseFloat(product.params[3].value) >= parseFloat(minDepth || '0') && parseFloat(product.params[3].value) <= parseFloat(maxDepth || 'Infinity') : true;
-    // const matchesColor = color ? color.includes(product.params[5]?.value) : true;
-    // const matchesType = type ? type.includes(product.params[4]?.value) : true;
 
     return (
       matchesSearch &&
@@ -284,12 +242,6 @@ export function getFiltredProducts(products: ProductType[], searchParams: { [key
       matchesVendor &&
       matchesSelectParams &&
       matchesUnitParams
-      // matchesWidth &&
-      // matchesHeight &&
-      // matchesDepth &&
-      // matchesSeries &&
-      // matchesColor &&
-      // matchesType
     );
   });
 }

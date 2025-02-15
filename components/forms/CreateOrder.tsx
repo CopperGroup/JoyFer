@@ -31,7 +31,7 @@ type CartProduct = {
 
 const CreateOrder = ({ userId, email }: { userId: string; email: string }) => {
   const router = useRouter();
-  const { cartData, priceToPay, setCartData } = useAppContext();
+  const { cartData, setCartData } = useAppContext();
   const [currentStep, setCurrentStep] = useState(1);
   const [isOrderCreated, setIsOrderCreated] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
@@ -40,6 +40,7 @@ const CreateOrder = ({ userId, email }: { userId: string; email: string }) => {
   const [showConfetti, setShowConfetti] = useState(false);
   const [ position, setPosition ] = useState<"fixed" | "relative">("fixed")
 
+  const priceToPay = cartData.reduce((acc: number, data: { price: number; quantity: number; }) => acc + (data.price * data.quantity), 0);
   useEffect(() => {
     const handleResize = () => {
       setWindowSize({
@@ -51,9 +52,11 @@ const CreateOrder = ({ userId, email }: { userId: string; email: string }) => {
     window.addEventListener('resize', handleResize);
     handleResize();
 
+    
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  
   const form = useForm<z.infer<typeof OrderValidation>>({
     resolver: zodResolver(OrderValidation),
     defaultValues: {

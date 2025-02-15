@@ -16,14 +16,6 @@ import { createSearchString } from "@/lib/utils"
 type Props = {
   maxPrice: number,
   minPrice: number, 
-  // maxMin: {
-  //   minWidth: number;
-  //   maxWidth: number;
-  //   minHeight: number;
-  //   maxHeight: number;
-  //   minDepth: number;
-  //   maxDepth: number;
-  // }, 
   countOfPages: number
 }
 const PaginationForCatalog = ({ maxPrice, minPrice, countOfPages }: Props) => {
@@ -57,9 +49,6 @@ const PaginationForCatalog = ({ maxPrice, minPrice, countOfPages }: Props) => {
     router.push(`/catalog?${searchString}`);
   }
 
-
-
-  console.log(searchParams)
   return (
    
     <Pagination className='mt-14 w'>
@@ -97,16 +86,12 @@ const PaginationForCatalog = ({ maxPrice, minPrice, countOfPages }: Props) => {
         </PaginationLink>
         </PaginationItem>
         </>}
-
-
-
+        
         <PaginationItem>
           <PaginationLink onClick={()=>setPage(page)} isActive>
             {page}
           </PaginationLink>
         </PaginationItem>
-
-
 
         {page == countOfPages?<></>:<>
         <PaginationItem>

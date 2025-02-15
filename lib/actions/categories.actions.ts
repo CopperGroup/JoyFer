@@ -12,12 +12,6 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import Filter from "../models/filter.model";
 
-interface FetchCategoriesPropertiesParams {
-  page?: number; // Current page
-  limit?: number; // Items per page
-  search?: string; // Search term for category name
-}
-
 export async function updateCategories(
   products: ProductType[],
   productOperation: "create" | "update" | "delete"
@@ -424,6 +418,7 @@ export async function createNewCategory({ name, products, previousCategoryId }: 
       products: productIds
     })
 
+    clearCatalogCache();
     clearCache(["createCategory", "updateProduct"]);
   } catch (error: any) {
     throw new Error(`Error creating new category: ${error.message}`)

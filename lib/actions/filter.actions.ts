@@ -2,7 +2,8 @@
 
 import Filter from "../models/filter.model";
 import { connectToDB } from "../mongoose";
-import { CategoryType, CreateFilterProps, FilterType } from "../types/types";
+import { CategoryType, CreateFilterProps, FilterSettingsData, FilterSettingsParamsType, FilterType } from "../types/types";
+import { clearCatalogCache } from "./redis/catalog.actions";
 
 export async function fetchFilter(): Promise<FilterType>;
 export async function fetchFilter(type: 'json'): Promise<string>;
@@ -56,23 +57,14 @@ export async function createFilter(categoriesObject: CreateFilterProps, delay: n
       filter = await Filter.create({ categories, delay });
     }
 
+    clearCatalogCache();
     return type === 'json' ? JSON.stringify(filter) : filter;
   } catch (error: any) {
     throw new Error(`${error.message}`);
   }
 }
 
-type FilterSettingsParamsType = {
-    totalProducts: number;
-    type: string;
-};
 
-type FilterSettingsData = {
-    [categoryId: string]: {
-        params: { [paramName: string]: FilterSettingsParamsType };
-        totalProducts: number;
-    };
-};
 
 
 type PopulatedFilter = Omit<FilterType, "categories"> & {

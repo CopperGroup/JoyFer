@@ -687,28 +687,33 @@ export async function fetchProductAndRelevantParams(
       isAvailable: true,
     });
 
-    const paramDifferences: ParamDifference = {};
+    const paramCounts: Record<string, Set<string>> = {};
 
-    // Identify differing parameters
-    for (const product of similarProducts) {
+    for (const product of [currentProduct, ...similarProducts]) {
       if (product.params && Array.isArray(product.params)) {
         for (const param of product.params) {
-          const existing = paramDifferences[param.name] || [];
-
-          if (
-            !existing.some((item) => item.value === param.value) &&
-            currentProduct.params?.some(
-              (cp: { name: string; value: string }) => cp.name === param.name && cp.value !== param.value
-            )
-          ) {
-            paramDifferences[param.name] = [
-              ...existing,
-              { _id: product._id.toString(), value: param.value },
-            ];
+          if (!paramCounts[param.name]) {
+            paramCounts[param.name] = new Set();
           }
+          paramCounts[param.name].add(param.value);
         }
       }
     }
+    
+    const paramDifferences: ParamDifference = {};
+    
+    // Keep only params with more than one unique value
+    for (const [paramName, values] of Object.entries(paramCounts)) {
+      if (values.size > 1) {
+        paramDifferences[paramName] = Array.from(values).map((value) => ({
+          _id: similarProducts.find((p) =>
+            p.params?.some((param: { name: string; value: string; }) => param.name === paramName && param.value === value)
+          )?._id.toString() || currentProduct._id.toString(),
+          value,
+        }));
+      }
+    }
+    
 
     return {
       product: currentProduct,
