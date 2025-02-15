@@ -123,7 +123,7 @@ const Catalog = async ({searchParams,data}:any) => {
                   id={product._id}
                   productId={product.id}
                   email={email}
-                  url={product.params[0].value} 
+                  url={product._id} 
                   price={product.price} 
                   imageUrl={product.images[0]} 
                   description={product.description.replace(/[^а-яА-ЯіІ]/g, ' ').substring(0, 35) + '...'}  
