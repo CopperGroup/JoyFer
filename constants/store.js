@@ -1,5 +1,5 @@
 export const Store = {
-    name: "FO Scandinavia",
+    name: "Sveamoda",
     currency: "UAH",
     currency_sign: "₴",
     domain: "https://fo-scandinavia.vercel.app"

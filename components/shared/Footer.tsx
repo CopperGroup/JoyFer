@@ -1,6 +1,7 @@
 import Image from "next/image"
 import Link from "next/link"
 import { Facebook, Instagram, Linkedin } from "lucide-react"
+import { Store } from "@/constants/store"
 
 const Footer = () => {
   const currentYear = new Date().getFullYear()
@@ -83,7 +84,7 @@ const Footer = () => {
         >
           <div className="flex flex-col lg:flex-row justify-between items-center">
             <p className="text-sm text-gray-400 mb-4 lg:mb-0 text-center lg:text-left">
-              © {currentYear}<span className="font-semibold">FO SCANDINAVIA</span>. Всі права захищені.
+              © {currentYear}<span className="font-semibold">{Store.name}</span>. Всі права захищені.
             </p>
             <div className="flex flex-col items-center lg:items-end space-y-2 lg:space-y-0">
               <span className="text-sm text-gray-400 text-center lg:text-right">Солодко</span>

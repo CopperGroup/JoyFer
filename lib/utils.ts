@@ -2,6 +2,7 @@ import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { CategoriesParams, FilterType, ProductType, TypeScriptPrimitiveTypes } from "./types/types";
 
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
@@ -541,3 +542,5 @@ export function pretifyProductName(productName: string, params: { name: string, 
 
   return cleanedName;
 }
+
+

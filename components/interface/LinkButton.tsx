@@ -17,7 +17,7 @@ const LinkButton = ({ children, href, className, type, ...props }: Props) => {
   return (
     <TransitionLink href={href} {...props} type={"left"}>
       <motion.div
-        className={cn(`relative w-fit h-fit flex justify-center items-center font-medium gap-2 border border-black rounded-full px-4 py-2 overflow-hidden ${type === "white" ? "border-white bg-white" : "border-black"}`, className)}
+        className={cn(`relative w-fit h-fit flex justify-center items-center font-medium gap-2 border border-black rounded-none px-4 py-2 overflow-hidden ${type === "white" ? "border-white bg-white" : "border-black"}`, className)}
         onHoverStart={() => setIsHovered(true)}
         onHoverEnd={() => setIsHovered(false)}
         onMouseDown={() => setIsHovered(true)}

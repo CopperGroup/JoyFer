@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/menubar";
 import BurgerMenu from "./BurgerMenu";
 import { trackFacebookEvent } from "@/helpers/pixel";
+import { Store } from "@/constants/store";
 
 const Links = [
   { label: "Головна", href: "/" },
@@ -60,14 +61,14 @@ export default function Header({ email, user }: { email: string; user: string })
       className="w-full min-w-[320px] h-20 flex justify-center items-center"
 
     >
-      <div className="w-full max-w-[1680px] h-full flex justify-between items-center bg-black rounded-b-full px-12 max-lg:rounded-none max-[600px]:px-9 max-[500px]:px-7">
+      <div className="w-full max-w-[1680px] h-full flex justify-between items-center bg-black px-5 max-[600px]:px-9 max-[500px]:px-7">
         <div className="size-5 hidden max-lg:flex"></div>
         <div
 
         >
           <Link href="/" className="w-fit flex gap-2 justify-center items-center">
             {/* <Logo /> */}
-            <p className="text-base-semibold text-white">FO Scandinavia</p>
+            <p className="text-base-semibold text-white">{Store.name}</p>
           </Link>
         </div>
         <nav className="w-fit h-11 flex gap-1 justify-center items-center rounded-full bg-[#1f1f1f] px-2 max-lg:hidden">

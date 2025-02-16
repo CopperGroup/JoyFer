@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { motion, AnimatePresence, useAnimation, PanInfo } from "framer-motion";
+import { Store } from "@/constants/store";
 
 const MobileAdminSidebar = () => {
   const pathname = usePathname();
@@ -62,7 +63,7 @@ const MobileAdminSidebar = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <Link href="/" className="text-heading3-bold">FO SCANDINAVIA</Link>
+            <Link href="/" className="text-heading3-bold">{Store.name}</Link>
             <p className="text-small-x-semibold text-dark-4 mt-4 mb-2">Admin</p>
             <div className="flex flex-col gap-2">
               {sidebarLinks.map((link) => {
