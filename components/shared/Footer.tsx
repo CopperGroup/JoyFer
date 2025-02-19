@@ -53,9 +53,9 @@ const Footer = () => {
           <div className="w-full">
             <h3 className="text-lg font-semibold mb-4">Каталоги</h3>
             <ul className="space-y-2">
-              <li><Link href='/catalog' className="hover:text-blue-400 transition-colors">Смаколики</Link></li>
-              <li><Link href='/catalog' className="hover:text-blue-400 transition-colors">Смаколики</Link></li>
-              <li><Link href='/catalog' className="hover:text-blue-400 transition-colors">Смаколики</Link></li>
+              <li><Link href='/catalog' className="hover:text-blue-400 transition-colors">Конструктори</Link></li>
+              <li><Link href='/catalog' className="hover:text-blue-400 transition-colors">Конструктори</Link></li>
+              <li><Link href='/catalog' className="hover:text-blue-400 transition-colors">Конструктори</Link></li>
             </ul>
           </div>
 

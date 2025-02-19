@@ -17,8 +17,9 @@ export default async function Home() {
       <Categories/>
       <Divider iconUrl="" width={0} height={0} mt={0} mb={0} type="default"/>
       <AboutUs/>
-      <History/>
-      <Brand/>
+      <Map/>
+      {/* <History/>
+      <Brand/> */}
       {/* <Map/>   */}
     </>
   );

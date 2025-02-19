@@ -14,7 +14,7 @@ const Map = () => {
   const pathOpacity = useTransform(scrollYProgress, [0, 0.2], [0, 1])
 
   return (
-    <section ref={sectionRef} className="relative bg-white py-24 flex items-center justify-center overflow-hidden">
+    <section ref={sectionRef} className="relative bg-gradient-to-b from-gray-100 to-white py-24 flex items-center justify-center overflow-hidden">
       <motion.svg
         className="absolute inset-0 w-full h-full"
         viewBox="0 0 100 100"
@@ -22,35 +22,35 @@ const Map = () => {
         style={{ opacity: pathOpacity }}
       >
         <motion.path
-          d="M0,0 Q25,25 0,50 T0,100"
+          d="M10,0 V10 H20 V30 H10 V50 H20 V70 H10 V90 H20 V100"
           fill="none"
           stroke="url(#gradient1)"
           strokeWidth="0.2"
           style={{ pathLength }}
         />
         <motion.path
-          d="M100,0 Q75,25 100,50 T100,100"
+          d="M30,0 V20 H40 V40 H30 V60 H40 V80 H30 V100"
           fill="none"
           stroke="url(#gradient2)"
           strokeWidth="0.2"
           style={{ pathLength }}
         />
         <motion.path
-          d="M0,0 C25,25 75,25 100,0"
+          d="M50,0 V15 H60 V35 H50 V55 H60 V75 H50 V95 H60 V100"
           fill="none"
           stroke="url(#gradient3)"
           strokeWidth="0.2"
           style={{ pathLength }}
         />
         <motion.path
-          d="M0,100 C25,75 75,75 100,100"
+          d="M70,0 V25 H80 V45 H70 V65 H80 V85 H70 V100"
           fill="none"
           stroke="url(#gradient1)"
           strokeWidth="0.2"
           style={{ pathLength }}
         />
         <motion.path
-          d="M50,0 C25,25 75,75 50,100"
+          d="M90,0 V5 H100 V25 H90 V45 H100 V65 H90 V85 H100 V100"
           fill="none"
           stroke="url(#gradient2)"
           strokeWidth="0.2"
@@ -58,16 +58,16 @@ const Map = () => {
         />
         <defs>
           <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop stopColor="#a72427"/>
-            <stop offset={1} stopColor="#a7242705"/>
+            <stop stopColor="#facc15" />
+            <stop offset={1} stopColor="#facc1505" />
           </linearGradient>
           <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop stopColor="#a72427"/>
-            <stop offset={1} stopColor="#a7242705"/>
+            <stop stopColor="#facc15" />
+            <stop offset={1} stopColor="#facc1505" />
           </linearGradient>
           <linearGradient id="gradient3" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop stopColor="#a72427"/>
-            <stop offset={1} stopColor="#a7242705"/>
+            <stop stopColor="#facc15" />
+            <stop offset={1} stopColor="#facc1505" />
           </linearGradient>
         </defs>
       </motion.svg>
@@ -82,7 +82,7 @@ const Map = () => {
           Знайдіть нас на карті
         </motion.h2>
         <motion.div 
-          className="w-full aspect-[16/9] rounded-3xl overflow-hidden shadow-2xl"
+          className="w-full aspect-[16/9] overflow-hidden shadow-2xl"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1, delay: 0.4 }}
